@@ -81,7 +81,7 @@ fastify.put('/wasp/reportin/:id', (req, res) =>
     report.errors.write += req.body.errors.write || 0;
     report.errors.timeout += req.body.errors.timeout || 0;
 
-    report.nonSuccessRequest += req.body.nonSuccessRequests;
+    report.nonSuccessRequests += req.body.nonSuccessRequests;
 
     res.send();
   }
