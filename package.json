@@ -28,6 +28,7 @@
     "wwb-wasp": "./wasp/wasp.js"
   },
   "dependencies": {
+    "convert-units": "^2.3.4",
     "fastify": "^2.4.1",
     "request": "^2.88.0"
   }
