@@ -1,4 +1,4 @@
-#Menu
+# Menu
 - Hive
   - [/hive/poke](#48752388-2f99-4fee-b382-4bc9637a0931)
   - [/hive/torch](#4ad64ec2-1ead-48aa-bda2-7fcc0c1b23c2)
@@ -13,7 +13,7 @@
 - Wasp: Wasps endpoints, you should let Hive exclusive use them instead of directly hitting them.
   - [/fire](#340ee629-9d3f-4fd9-9114-4b43b66826d2)
 
-#Hive
+# Hive
 ## <i id="48752388-2f99-4fee-b382-4bc9637a0931"></i>/hive/poke
 `PUT` `{{HIVE}}/hive/poke`
 
@@ -24,6 +24,29 @@ starts the load test.
 | key | type | value | description |
 | ---- | ---- | ---- | ---- |
 | Content-Type | `text` | application/json |  |
+
+### Varibles
+#### t
+The amount of threads 
+**Default:**10
+***Optional***
+
+#### c
+The amount of concurrency
+**Default:**50
+***Optional***
+
+#### d
+How long to run the test in seconds.
+**Default:**30
+***Optional***
+
+### target
+The target url to hit
+
+#### script
+Wrk lua script code to execute 
+***Optional***
 
 **Body**
 
@@ -239,7 +262,7 @@ $ curl -X GET \
     -H "Content-Type": application/json \
     -H "cache-control": no-cache
 ```
-#Wasp
+# Wasp
 ## <i id="340ee629-9d3f-4fd9-9114-4b43b66826d2"></i>/fire
 `PUT` `{{WASP}}/fire`
 
