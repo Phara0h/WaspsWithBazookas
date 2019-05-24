@@ -339,4 +339,4 @@ var gError = function(route, res)
 }
 
 console.log('Hive ready to release the wasps!')
-fastify.listen(process.argv[3] || process.env.WWB_HIVE_PORT || 4269)
+fastify.listen(process.argv[2] || process.env.WWB_HIVE_PORT || 4269)
