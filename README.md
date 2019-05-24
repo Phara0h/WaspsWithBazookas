@@ -1,11 +1,14 @@
 # WaspsWithBazookas
 Its like bees with machine guns but way more power
 
+Do not use this to DDOS for the lulz or any other purpose on servers you don't own, it is illegal . Don't say I did not tell you so.
+
 Postman REST Docs
 [Postman REST Docs](https://documenter.getpostman.com/view/7072151/S1TR4zsf)
 You can also check out the docs/API.md file (but it might be out of date)
 
 # Install
+install wrk and have the bin in your path.
 
 ```javascript
 npm install -g waspswithbazookas
