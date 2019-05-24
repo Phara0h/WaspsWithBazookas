@@ -1,0 +1,34 @@
+{
+  "name": "waspswithbazookas",
+  "version": "1.0.0",
+  "description": "Its like bees with machine guns but way more power",
+  "main": "./hive/hive.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Phara0h/WaspsWithBazookas.git"
+  },
+  "keywords": [
+    "loadtest",
+    "aws",
+    "bees",
+    "with",
+    "machineguns"
+  ],
+  "author": "Jt Whissel",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Phara0h/WaspsWithBazookas/issues"
+  },
+  "homepage": "https://github.com/Phara0h/WaspsWithBazookas#readme",
+  "bin": {
+    "wwb-hive": "./hive/hive.js",
+    "wwb-wasp": "./wasp/wasp.js"
+  },
+  "dependencies": {
+    "fastify": "^2.4.1",
+    "request": "^2.88.0"
+  }
+}
