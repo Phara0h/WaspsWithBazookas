@@ -14,6 +14,21 @@ install wrk and have the bin in your path.
 npm install -g waspswithbazookas
 ```
 
+# Sample config file for remote control
+
+```javascript
+{
+  "instance": {
+    "type": "remote",
+    "hive": {
+      "ip": "0.0.0.0",
+      "port": "4269"
+    }
+  }
+}
+```
+
+
 # How to run
 
 On your choice of platform for example AWS. You would have one instance running the hive and x amount of other instances running wasps.
