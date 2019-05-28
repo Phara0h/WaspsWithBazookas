@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+process.title = 'Hive';
 
 const http = require('http');
 const fastify = require('fastify')();
