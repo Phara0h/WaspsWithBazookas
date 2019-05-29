@@ -43,10 +43,11 @@ fastify.put('/fire', (req, res) =>
   if(!running)
   {
     running = true;
+    req.body = JSON.parse(req.body);
 
     if(req.body.script)
     {
-      fs.writeFileSync(pwd + "/wrk.lua", req.body.script);
+      fs.writeFileSync(pwd + "/wrk.lua", decodeURI(req.body.script));
     }
 
     runWRK(req.body.t, req.body.c, req.body.d, req.body.target, req.body.script, cmd =>

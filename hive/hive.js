@@ -132,6 +132,7 @@ fastify.put('/hive/poke', (req, res) =>
 {
   if(!isRunningRes(res))
   {
+    req.body = JSON.parse(req.body)
     if(!req.body.target)
     {
       res.code(400).send('need a target, cant shoot into the darkness...')
@@ -149,7 +150,7 @@ fastify.put('/hive/poke', (req, res) =>
           method: 'PUT',
           uri: `http://${wasps[i].ip}:${wasps[i].port}/fire`,
           json: true,
-          body: req.body
+          body: JSON.stringify(req.body)
         })
       }
 
@@ -309,8 +310,8 @@ var genReport = function()
       }
     }
   }
-  report.latency.avg = wasp.stats.latency.avg / report.status.completed;
-  report.rps.avg = wasp.stats.rps.avg / report.status.completed;
+  report.latency.avg = report.latency.avg / report.status.completed;
+  report.rps.avg = report.rps.avg / report.status.completed;
   report.read = (
   {
     val,
