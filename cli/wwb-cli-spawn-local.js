@@ -16,25 +16,27 @@ var spawn = function() {
   var h = require('child_process').spawn('node', [pwd + '/../hive/hive.js', config.instance.hive.port], {
     detached: true
   });
+  setTimeout(()=>{
+    config.instance.hive.pid = h.pid;
+    var wCount = program.wasps || 1;
+    var port = 4268;
+    console.log('Starting '+wCount+' Wasps...')
+    for (var i = 0; i < wCount; i++) {
 
-  config.instance.hive.pid = h.pid;
-  var wCount = program.wasps || 1;
-  var port = 4268;
-  console.log('Starting '+wCount+' Wasps...')
-  for (var i = 0; i < wCount; i++) {
+      var s = require('child_process').spawn('node', [pwd + '/../wasp/wasp.js', `http://127.0.0.1:${config.instance.hive.port}/`, port], {
+        detached: true
+      });
+      config.wasps.push({
+        port: port,
+        pid: s.pid
+      });
+      port -= 1;
+    }
+    console.log('done');
+    saveConfig();
+    process.exit();
+  },500)
 
-    var s = require('child_process').spawn('node', [pwd + '/../wasp/wasp.js', `http://127.0.0.1:${config.instance.hive.port}/`, port], {
-      detached: true
-    });
-    config.wasps.push({
-      port: port,
-      pid: s.pid
-    });
-    port -= 1;
-  }
-  console.log('done');
-  saveConfig();
-  process.exit();
 }
 
 var stopInstances = function() {
