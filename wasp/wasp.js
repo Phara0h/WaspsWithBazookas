@@ -32,7 +32,7 @@ else
     else
     {
       id = JSON.parse(body).id;
-      fastify.listen(port)
+      fastify.listen(port, '0.0.0.0')
       console.log(id + ' ready and listing for your orders!')
     }
   })

@@ -90,7 +90,7 @@ fastify.put('/wasp/reportin/:id', (req, res) =>
   {
     gError('/wasp/reportin/:id', res);
   }
-  if(waspDoneCount == waspsRunningCount)
+  if(waspDoneCount >= waspsRunningCount)
   {
     genReport();
   }
@@ -121,7 +121,7 @@ fastify.put('/wasp/reportin/:id/failed', (req, res) =>
   {
     gError('/wasp/reportin/:id/failed', res);
   }
-  if(waspDoneCount == waspsRunningCount)
+  if(waspDoneCount >= waspsRunningCount)
   {
     genReport();
   }
@@ -341,4 +341,4 @@ var gError = function(route, res)
 }
 
 console.log('Hive ready to release the wasps!')
-fastify.listen(process.argv[2] || process.env.WWB_HIVE_PORT || 4269)
+fastify.listen(process.argv[2] || process.env.WWB_HIVE_PORT || 4269, '0.0.0.0')
