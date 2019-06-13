@@ -1,10 +1,12 @@
 #!/usr/bin/env node
+
 process.title = 'Hive';
 
 const http = require('http');
 const fastify = require('fastify')();
 const request = require('request');
 var convert = require('convert-units');
+const fs = require('fs');
 
 var running = false;
 var runTimeout = null;
@@ -16,12 +18,22 @@ var runTimeStamp = 0;
 var idCount = 0;
 var report = null;
 
+if (process.argv[3])
+{
+  var path = require('path').resolve(process.argv[3]);
+
+  console.log = console.error = function(d)
+  {
+    fs.appendFileSync(path, d+'\n');
+  };
+}
+
 fastify.get('/wasp/checkin/:port', (req, res) =>
 {
   var found = null;
-  for(var i = 0; i < wasps.length; i++)
+  for (var i = 0; i < wasps.length; i++)
   {
-    if(wasps[i].ip == req.ip && wasps[i].port == req.params.port)
+    if (wasps[i].ip == req.ip && wasps[i].port == req.params.port)
     {
       found = i;
       break;
@@ -33,7 +45,7 @@ fastify.get('/wasp/checkin/:port', (req, res) =>
     port: req.params.port,
     id: 'wasp' + idCount++
   }
-  if(found == null)
+  if (found == null)
   {
     wasps.push(wasp);
   }
@@ -65,7 +77,7 @@ fastify.put('/wasp/reportin/:id', (req, res) =>
     return w.id == req.params.id;
   });
 
-  if(wasp)
+  if (wasp)
   {
     waspDoneCount++;
     report.status.completed += 1;
@@ -91,7 +103,7 @@ fastify.put('/wasp/reportin/:id', (req, res) =>
   {
     gError('/wasp/reportin/:id', res);
   }
-  if(waspDoneCount >= waspsRunningCount)
+  if (waspDoneCount >= waspsRunningCount)
   {
     genReport();
   }
@@ -105,7 +117,7 @@ fastify.put('/wasp/reportin/:id/failed', (req, res) =>
     return w.id == req.params.id;
   });
 
-  if(wasp)
+  if (wasp)
   {
     waspDoneCount++;
     report.wasp.reports.push(
@@ -122,7 +134,7 @@ fastify.put('/wasp/reportin/:id/failed', (req, res) =>
   {
     gError('/wasp/reportin/:id/failed', res);
   }
-  if(waspDoneCount >= waspsRunningCount)
+  if (waspDoneCount >= waspsRunningCount)
   {
     genReport();
   }
@@ -131,9 +143,9 @@ fastify.put('/wasp/reportin/:id/failed', (req, res) =>
 
 fastify.put('/hive/poke', (req, res) =>
 {
-  if(!isRunningRes(res))
+  if (!isRunningRes(res))
   {
-    if(!req.body.target)
+    if (!req.body.target)
     {
       res.code(400).send('need a target, cant shoot into the darkness...')
     }
@@ -147,7 +159,7 @@ fastify.put('/hive/poke', (req, res) =>
 
       setRunning(true);
 
-      for(var i = 0; i < wasps.length; i++)
+      for (var i = 0; i < wasps.length; i++)
       {
         request(
         {
@@ -164,7 +176,7 @@ fastify.put('/hive/poke', (req, res) =>
       //shit went down if they don't all respond in duration + 5 seconds
       runTimeout = setTimeout(() =>
       {
-        if(running)
+        if (running)
         {
           genReport();
         }
@@ -182,7 +194,7 @@ fastify.delete('/hive/torch', (req, res) =>
 
 fastify.get('/hive/status/done', (req, res) =>
 {
-  if(!isRunningRes(res))
+  if (!isRunningRes(res))
   {
     res.code(200).send('done');
   }
@@ -190,9 +202,9 @@ fastify.get('/hive/status/done', (req, res) =>
 
 fastify.get('/hive/status/report', (req, res) =>
 {
-  if(!isRunningRes(res))
+  if (!isRunningRes(res))
   {
-    if(report)
+    if (report)
     {
       res.code(200).send(report);
     }
@@ -206,9 +218,9 @@ fastify.get('/hive/status/report', (req, res) =>
 
 fastify.get('/hive/status/report/:val', (req, res) =>
 {
-  if(!isRunningRes(res))
+  if (!isRunningRes(res))
   {
-    if(report && report[req.params.val])
+    if (report && report[req.params.val])
     {
       res.code(200).send(report[req.params.val]);
     }
@@ -223,7 +235,7 @@ fastify.get('/hive/status/report/:val', (req, res) =>
 
 fastify.get('/hive/status', (req, res) =>
 {
-  if(!isRunningRes(res, 200))
+  if (!isRunningRes(res, 200))
   {
     res.code(200).send(`Hive is operational with ${wasps.length} wasps ready and waiting orders.`);
   }
@@ -232,9 +244,9 @@ fastify.get('/hive/status', (req, res) =>
 
 var isRunningRes = function(res, code)
 {
-  if(running)
+  if (running)
   {
-    res.code(code || 425).send(((waspDoneCount / waspsRunningCount) * 100) + "% complete, eta " + Math.round(( duration-((Number(process.hrtime.bigint()) / 1000000) -runTimeStamp))) + "ms to go.");
+    res.code(code || 425).send(((waspDoneCount / waspsRunningCount) * 100) + "% complete, eta " + Math.round((duration - ((Number(process.hrtime.bigint()) / 1000000) - runTimeStamp))) + "ms to go.");
     return true;
   }
   return false;
@@ -242,7 +254,7 @@ var isRunningRes = function(res, code)
 
 var setRunning = function(run)
 {
-  if(run)
+  if (run)
   {
     running = true;
     runTimeStamp = Number(process.hrtime.bigint()) / 1000000;
@@ -296,19 +308,19 @@ var setRunning = function(run)
 var genReport = function()
 {
   console.log(`Reports are in lets see how they are.`);
-  for(var i = 0; i < report.wasp.reports.length; i++)
+  for (var i = 0; i < report.wasp.reports.length; i++)
   {
     var wasp = report.wasp.reports[i];
-    if(wasp.stats)
+    if (wasp.stats)
     {
       report.latency.avg += wasp.stats.latency.avg;
       report.rps.avg += wasp.stats.rps.avg;
 
-      if(wasp.stats.latency.max > report.latency.max)
+      if (wasp.stats.latency.max > report.latency.max)
       {
         report.latency.max = wasp.stats.latency.max;
       }
-      if(wasp.stats.rps.max > report.rps.max)
+      if (wasp.stats.rps.max > report.rps.max)
       {
         report.rps.max = wasp.stats.rps.max;
       }

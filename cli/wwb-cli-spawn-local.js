@@ -13,7 +13,7 @@ program.on('command:*', function () {
 
 var spawn = function() {
   console.log('Starting Hive...')
-  var h = require('child_process').spawn('node', [pwd + '/../hive/hive.js', config.instance.hive.port], {
+  var h = require('child_process').spawn('node', [pwd + '/../hive/hive.js', config.instance.hive.port, require('path').resolve(program.log)], {
     detached: true
   });
   setTimeout(()=>{
@@ -23,7 +23,7 @@ var spawn = function() {
     console.log('Starting '+wCount+' Wasps...')
     for (var i = 0; i < wCount; i++) {
 
-      var s = require('child_process').spawn('node', [pwd + '/../wasp/wasp.js', `http://127.0.0.1:${config.instance.hive.port}/`, port], {
+      var s = require('child_process').spawn('node', [pwd + '/../wasp/wasp.js', `http://127.0.0.1:${config.instance.hive.port}/`, port, require('path').resolve(program.log)], {
         detached: true
       });
       config.wasps.push({
@@ -75,7 +75,8 @@ var saveConfig = function() {
 program
   .usage('[command] [options]')
   .option('-w, --wasps <n>', 'How many wasps instances')
-  .option('-hp, --hive-port <n>', `Hive's port`, );
+  .option('-hp, --hive-port <n>', `Hive's port`, )
+  .option('-l, --log <path>', 'Log file path')
 
 program
   .command('start')

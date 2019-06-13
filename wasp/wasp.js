@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-process.title = 'Hive';
+process.title = 'Wasp';
 
 const fastify = require('fastify')();
 const os = require('os');
@@ -15,6 +15,18 @@ var running = false;
 var id = 0;
 var hive = process.argv[2] || process.env.WWB_HIVE_URL;
 var port = process.argv[3] || process.env.WWB_WASP_PORT || 4268;
+
+
+if (process.argv[4])
+{
+  var path = require('path').resolve(process.argv[4]);
+
+  console.log = console.error = function(d)
+  {
+    fs.appendFileSync(path, d+'\n');
+  };
+}
+
 
 if (!hive)
 {
@@ -91,7 +103,7 @@ fastify.put('/fire', (req, res) =>
   }
 })
 
-var runWRK = function(t, c, d, target, script, cb)
+var runWRK = function runWRK(t, c, d, target, script, cb)
 {
   console.log(`Shooting ${target} with bazookas!`);
   var cmd = {
