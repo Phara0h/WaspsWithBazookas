@@ -23,7 +23,7 @@ if (process.argv[4])
 
   console.log = console.error = function(d)
   {
-    fs.appendFileSync(path, d+'\n');
+    fs.appendFileSync(path, d + '\n');
   };
 }
 
@@ -63,7 +63,7 @@ fastify.put('/fire', (req, res) =>
       fs.writeFileSync(pwd + "/wrk.lua", decodeURI(req.body.script));
     }
 
-    runWRK(req.body.t, req.body.c, req.body.d, req.body.target, req.body.script, cmd =>
+    runWRK(req.body.t, req.body.c, req.body.d, req.body.timeout, req.body.target, req.body.script, cmd =>
     {
       if (cmd.status != 'failed')
       {
@@ -103,11 +103,11 @@ fastify.put('/fire', (req, res) =>
   }
 })
 
-var runWRK = function runWRK(t, c, d, target, script, cb)
+var runWRK = function runWRK(t, c, d, timeout, target, script, cb)
 {
   console.log(`Shooting ${target} with bazookas!`);
   var cmd = {
-    cmd: `wrk -t${t} -c${c} -d${d} ` + (script ? `-s${pwd}/wrk.lua ` : '') + target
+    cmd: `wrk -t${t} -c${c} -d${d} ${timeout ? '--timeout '+timeout+' ' :''} ` + (script ? `-s${pwd}/wrk.lua ` : '') + target
   }
   var bat = os.platform() == 'win32' ? proc.spawn('cmd.exe', ['/c', cmd.cmd]) : proc.spawn('sh', ['-c', cmd.cmd]);
   cmd.bat = bat;
@@ -202,6 +202,21 @@ var sendStats = function(cmd)
   })
   console.log('Reporting back to hive.');
 }
+
+setInterval(() =>
+{
+  request(
+  {
+    method: 'GET',
+    uri: `${hive}wasp/heartbeat/${port}`
+  }, (err, res, body) =>
+  {
+    if (err)
+    {
+      console.log(err)
+    }
+  })
+}, 5000)
 
 var convertStat = function(stat, unit)
 {

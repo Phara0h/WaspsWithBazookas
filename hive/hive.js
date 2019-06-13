@@ -7,26 +7,60 @@ const fastify = require('fastify')();
 const request = require('request');
 var convert = require('convert-units');
 const fs = require('fs');
+var pwd = require('path').dirname(require.main.filename);
 
+var hivePort = process.argv[2] || process.env.WWB_HIVE_PORT || 4269;
 var running = false;
 var runTimeout = null;
 var duration = 0;
 var wasps = [];
+var localWasps = [];
 var waspDoneCount = 0;
 var waspsRunningCount = 0;
+var waspLocalPortIndex = 42690; //decrements per wasp
 var runTimeStamp = 0;
 var idCount = 0;
 var report = null;
+var logPath = null;
 
 if (process.argv[3])
 {
-  var path = require('path').resolve(process.argv[3]);
+  logPath = require('path').resolve(process.argv[3]);
 
   console.log = console.error = function(d)
   {
-    fs.appendFileSync(path, d+'\n');
+    fs.appendFileSync(logPath, d+'\n');
   };
 }
+
+fastify.get('/wasp/heartbeat/:port', (req, res) =>{
+  var found = null;
+  for (var i = 0; i < wasps.length; i++)
+  {
+    if (wasps[i].ip == req.ip && wasps[i].port == req.params.port)
+    {
+      found = i;
+      break;
+    }
+  }
+
+  if(found === null)
+  {
+    res.code(400).send();
+  }
+  else
+  {
+    if(wasps[found])
+    {
+      wasps[found].lastHeartbeat = Number(process.hrtime.bigint())/ 1000000;
+      res.code(200).send();
+    }
+    else
+    {
+      res.code(400).send();
+    }
+  }
+})
 
 fastify.get('/wasp/checkin/:port', (req, res) =>
 {
@@ -43,9 +77,10 @@ fastify.get('/wasp/checkin/:port', (req, res) =>
   var wasp = {
     ip: req.ip,
     port: req.params.port,
-    id: 'wasp' + idCount++
+    id: 'wasp' + idCount++,
+    lastHeartbeat: Number(process.hrtime.bigint())/ 1000000
   }
-  if (found == null)
+  if (found === null)
   {
     wasps.push(wasp);
   }
@@ -54,7 +89,6 @@ fastify.get('/wasp/checkin/:port', (req, res) =>
     wasps[found] = wasp;
   }
 
-
   res.code('200').send(
   {
     id: wasp.id
@@ -62,7 +96,6 @@ fastify.get('/wasp/checkin/:port', (req, res) =>
 
   console.log(`Wasp ${idCount-1} checking in at ${wasp.ip}!`);
   console.log(`Total Wasps: ${wasps.length}`)
-
 })
 
 fastify.get('/wasp/list', (req, res) =>
@@ -143,7 +176,11 @@ fastify.put('/wasp/reportin/:id/failed', (req, res) =>
 
 fastify.put('/hive/poke', (req, res) =>
 {
-  if (!isRunningRes(res))
+  if(wasps.length <= 0)
+  {
+    res.code(400).send('There are no wasps to make angry.');
+  }
+  else if (!isRunningRes(res))
   {
     if (!req.body.target)
     {
@@ -185,10 +222,26 @@ fastify.put('/hive/poke', (req, res) =>
   }
 })
 
+fastify.delete('/hive/torch/local', (req, res) =>
+{
+  res.code(200).send(`R.I.P All ${wasps.length} wasps. :'(`);
+
+  for (var i = 0; i < localWasps.length; i++) {
+    process.kill(localWasps[i].pid);
+  }
+  localWasps = [];
+  console.log('f');
+})
+
 fastify.delete('/hive/torch', (req, res) =>
 {
   res.code(200).send(`R.I.P All ${wasps.length} wasps. :'(`);
+
   wasps = [];
+  for (var i = 0; i < localWasps.length; i++) {
+    process.kill(localWasps[i].pid);
+  }
+  localWasps = [];
   console.log('f');
 })
 
@@ -241,6 +294,29 @@ fastify.get('/hive/status', (req, res) =>
   }
 })
 
+fastify.get('/hive/spawn/local/:amount', (req, res) =>
+{
+  if (!isRunningRes(res, 200))
+  {
+    var wCount = req.params.amount;
+
+    console.log('Starting '+wCount+' Wasps...')
+    for (var i = 0; i < wCount; i++) {
+
+      var s = require('child_process').spawn('node', [pwd + '/../wasp/wasp.js', `http://127.0.0.1:${hivePort}/`, waspLocalPortIndex, logPath], {
+        detached: true
+      });
+      localWasps.push({
+        ip: '127.0.0.1',
+        port: waspLocalPortIndex,
+        pid: s.pid
+      });
+      waspLocalPortIndex -= 1;
+    }
+
+    res.code(200).send(`Attempted to spawn ${localWasps.length}.`);
+  }
+});
 
 var isRunningRes = function(res, code)
 {
@@ -356,5 +432,15 @@ var gError = function(route, res)
   console.log(`Bad thingz happened in the ${route} sectorz.`);
 }
 
+setInterval(()=>{
+  if(wasps.length > 0)
+  {
+    wasps = wasps.filter((wasp)=>{
+      return ((Number(process.hrtime.bigint()) / 1000000)- wasp.lastHeartbeat) < 30000
+    })
+  }
+},30000)
+
+
 console.log('Hive ready to release the wasps!')
-fastify.listen(process.argv[2] || process.env.WWB_HIVE_PORT || 4269, '0.0.0.0')
+fastify.listen(hivePort, '0.0.0.0')
