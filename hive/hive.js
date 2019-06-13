@@ -7,6 +7,8 @@ const request = require('request');
 var convert = require('convert-units');
 
 var running = false;
+var runTimeout = null;
+var duration = 0;
 var wasps = [];
 var waspDoneCount = 0;
 var waspsRunningCount = 0;
@@ -66,23 +68,22 @@ fastify.put('/wasp/reportin/:id', (req, res) =>
   if(wasp)
   {
     waspDoneCount++;
+    report.status.completed += 1;
     report.wasp.reports.push(
     {
       wasp: wasp,
       status: 'complete',
       stats: req.body
     })
-    report.status.completed += 1;
-    report.totalRPS += req.body.totalRPS;
-    report.read += req.body.read;
-    report.totalRequests += req.body.totalRequests;
-    report.tps += req.body.tps;
-    report.errors.connect += req.body.errors.connect || 0;
-    report.errors.read += req.body.errors.read || 0;
-    report.errors.write += req.body.errors.write || 0;
-    report.errors.timeout += req.body.errors.timeout || 0;
-
-    report.nonSuccessRequests += req.body.nonSuccessRequests;
+    report.totalRPS += Number(req.body.totalRPS);
+    report.read += Number(req.body.read);
+    report.totalRequests += Number(req.body.totalRequests);
+    report.tps += Number(req.body.tps);
+    report.errors.connect += Number(req.body.errors.connect) || 0;
+    report.errors.read += Number(req.body.errors.read) || 0;
+    report.errors.write += Number(req.body.errors.write) || 0;
+    report.errors.timeout += Number(req.body.errors.timeout) || 0;
+    report.nonSuccessRequests += req.body.nonSuccessRequests || 0;
 
     res.send();
   }
@@ -133,6 +134,7 @@ fastify.put('/hive/poke', (req, res) =>
   if(!isRunningRes(res))
   {
     req.body = JSON.parse(req.body)
+
     if(!req.body.target)
     {
       res.code(400).send('need a target, cant shoot into the darkness...')
@@ -142,6 +144,10 @@ fastify.put('/hive/poke', (req, res) =>
       req.body.t = req.body.t || 10;
       req.body.c = req.body.c || 50;
       req.body.d = req.body.d || 30;
+
+      duration = req.body.d * 1000;
+
+      setRunning(true);
 
       for(var i = 0; i < wasps.length; i++)
       {
@@ -156,10 +162,9 @@ fastify.put('/hive/poke', (req, res) =>
 
       res.code(200).send('Angry wasp noises');
       console.log('Sending command to fire!');
-      setRunning(true);
 
       //shit went down if they don't all respond in duration + 5 seconds
-      setTimeout(() =>
+      runTimeout = setTimeout(() =>
       {
         if(running)
         {
@@ -222,7 +227,7 @@ fastify.get('/hive/status', (req, res) =>
 {
   if(!isRunningRes(res, 200))
   {
-    res.code(200).send(`Hive is oprational with ${wasps.length} wasps ready and waiting orders.`);
+    res.code(200).send(`Hive is operational with ${wasps.length} wasps ready and waiting orders.`);
   }
 })
 
@@ -231,7 +236,7 @@ var isRunningRes = function(res, code)
 {
   if(running)
   {
-    res.code(code || 425).send(((waspDoneCount / waspsRunningCount) * 100) + "% complete, eta " + ((Number(process.hrtime.bigint()) / 1000000) - runTimeStamp) + "ms to go.");
+    res.code(code || 425).send(((waspDoneCount / waspsRunningCount) * 100) + "% complete, eta " + Math.round(( duration-((Number(process.hrtime.bigint()) / 1000000) -runTimeStamp))) + "ms to go.");
     return true;
   }
   return false;
@@ -286,6 +291,7 @@ var setRunning = function(run)
     waspDoneCount = 0;
     waspsRunningCount = 0;
     running = false;
+    clearTimeout(runTimeout);
   }
 }
 
@@ -310,8 +316,8 @@ var genReport = function()
       }
     }
   }
-  report.latency.avg = report.latency.avg / report.status.completed;
-  report.rps.avg = report.rps.avg / report.status.completed;
+  report.latency.avg = (report.latency.avg / report.status.completed) || 0;
+  report.rps.avg = (report.rps.avg / report.status.completed) || 0;
   report.read = (
   {
     val,

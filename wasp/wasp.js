@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 process.title = 'Hive';
 
 const fastify = require('fastify')();
@@ -15,7 +16,7 @@ var id = 0;
 var hive = process.argv[2] || process.env.WWB_HIVE_URL;
 var port = process.argv[3] || process.env.WWB_WASP_PORT || 4268;
 
-if(!hive)
+if (!hive)
 {
   console.error(`Need to set HIVE URL either through WWB_HIVE_URL env or 'wwb-wasp http://<hiveip>:<hiveport>/'`)
   process.exit();
@@ -24,7 +25,7 @@ else
 {
   request.get(hive + 'wasp/checkin/' + port, (error, response, body) =>
   {
-    if(error)
+    if (error)
     {
       console.error(`Hive is not responding! ${error}`)
       process.exit();
@@ -40,19 +41,19 @@ else
 
 fastify.put('/fire', (req, res) =>
 {
-  if(!running)
+  if (!running)
   {
     running = true;
     req.body = JSON.parse(req.body);
 
-    if(req.body.script)
+    if (req.body.script)
     {
       fs.writeFileSync(pwd + "/wrk.lua", decodeURI(req.body.script));
     }
 
     runWRK(req.body.t, req.body.c, req.body.d, req.body.target, req.body.script, cmd =>
     {
-      if(cmd.status != 'failed')
+      if (cmd.status != 'failed')
       {
         console.log('Buzzz buz buz ugh, oof, I mean target destroyed!');
         sendStats(cmd);
@@ -69,7 +70,7 @@ fastify.put('/fire', (req, res) =>
         }, (err, res, body) =>
         {
           running = false;
-          if(!err)
+          if (!err)
           {
             console.log('Hive transmission complete.');
           }
@@ -112,7 +113,7 @@ var runWRK = function(t, c, d, target, script, cb)
 
   bat.on('exit', code =>
   {
-    if(cmd.status != 'failed' && code == 0)
+    if (cmd.status != 'failed' && code == 0)
     {
       cmd.status = 'done';
     }
@@ -128,16 +129,16 @@ var sendStats = function(cmd)
   var stats = {
     latency:
     {
-      avg: convertStat(tmp[1].replace('us', 'mu'), 'ms'),
-      stdev: convertStat(tmp[2].replace('us', 'mu'), 'ms'),
-      max: convertStat(tmp[3].replace('us', 'mu'), 'ms'),
+      avg: convertStat(tmp[1].replace('us', 'mu'), 'ms') || 0,
+      stdev: convertStat(tmp[2].replace('us', 'mu'), 'ms') || 0,
+      max: convertStat(tmp[3].replace('us', 'mu'), 'ms') || 0,
       stdevPercent: tmp[4],
     },
     rps:
     {
-      avg: convertMetric(tmp[6]),
-      stdev: convertMetric(tmp[7]),
-      max: convertMetric(tmp[8]),
+      avg: convertMetric(tmp[6]) || 0,
+      stdev: convertMetric(tmp[7]) || 0,
+      max: convertMetric(tmp[8]) || 0,
       stdevPercent: tmp[9],
     },
     read: convertStat(tmp[14], 'B'),
@@ -145,11 +146,16 @@ var sendStats = function(cmd)
     totalRPS: Number(tmp[tmp.indexOf('Requests/sec:') + 1].replace(/([^0-9\.])/g, '')),
     tps: convertStat(tmp[tmp.indexOf('Transfer/sec:') + 1], 'B'),
     errors:
-    {},
+    {
+      connect: 0,
+      read: 0,
+      write: 0,
+      timeout: 0
+    },
   }
 
 
-  if(tmp.indexOf('errors:') > -1)
+  if (tmp.indexOf('errors:') > -1)
   {
     stats.errors.connect = Number(tmp[tmp.indexOf('connect') + 1].replace(/([^0-9\.])/g, ''));
     stats.errors.read = Number(tmp[tmp.indexOf('connect') + 3].replace(/([^0-9\.])/g, ''));
@@ -157,10 +163,12 @@ var sendStats = function(cmd)
     stats.errors.timeout = Number(tmp[tmp.indexOf('connect') + 7].replace(/([^0-9\.])/g, ''));
 
   }
-  if(tmp.indexOf('3xx') > -1)
+
+  if (tmp.indexOf('3xx') > -1)
   {
-    stats.nonSuccessRequests = Number(tmp[tmp.indexOf('3xx') + 2]);
+    stats.nonSuccessRequests = Number(tmp[tmp.indexOf('3xx') + 2]) || 0;
   }
+
   request(
   {
     method: 'PUT',
@@ -170,7 +178,7 @@ var sendStats = function(cmd)
   }, (err, res, body) =>
   {
     running = false;
-    if(!err)
+    if (!err)
     {
       console.log('Hive transmission complete.');
     }
@@ -187,7 +195,7 @@ var convertStat = function(stat, unit)
 {
   return convert(Number(stat.replace(/([^0-9\.])/g, ''))).from(stat.replace(/([0-9\.])/g, '')).to(unit);
 }
-var convertMetric
+
 var convertMetric = function(stat)
 {
   var metVar = stat.replace(/([0-9\.])/g, '');
