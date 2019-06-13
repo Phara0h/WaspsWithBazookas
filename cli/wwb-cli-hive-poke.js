@@ -33,13 +33,13 @@ request(
   method: 'PUT',
   uri: `http://${config.instance.hive.ip}:${config.instance.hive.port}/hive/poke`,
   json: true,
-  body: JSON.stringify({
+  body: {
     t: program.threads,
     c: program.concurrency,
     d: program.duration,
     script: program.script ?   encodeURI(fs.readFileSync(require('path').resolve(program.script),"ascii")) : null,
     target: program.target
-  })
+  }
 },(err, httpResponse, body)=> {
   console.log(body)
 })

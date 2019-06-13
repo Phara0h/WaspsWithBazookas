@@ -133,8 +133,6 @@ fastify.put('/hive/poke', (req, res) =>
 {
   if(!isRunningRes(res))
   {
-    req.body = JSON.parse(req.body)
-
     if(!req.body.target)
     {
       res.code(400).send('need a target, cant shoot into the darkness...')
