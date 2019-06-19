@@ -249,6 +249,12 @@ fastify.put('/hive/poke', (req, res) =>
           uri: `http://${wasps[i].ip}:${wasps[i].port}/fire`,
           json: true,
           body: JSON.stringify(req.body)
+        }, err =>
+        {
+          if(err)
+          {
+            console.error(err);
+          }
         })
       }
 
