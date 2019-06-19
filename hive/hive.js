@@ -24,26 +24,19 @@ var idCount = 0;
 var report = null;
 var logPath = null;
 
-if (process.argv[3])
+if(process.argv[3])
 {
   logPath = require('path').resolve(process.argv[3]);
 
   console.log = console.error = function(d)
   {
-    fs.appendFileSync(logPath, d+'\n');
+    fs.appendFileSync(logPath, d + '\n');
   };
 }
 
-fastify.get('/wasp/heartbeat/:port', (req, res) =>{
-  var found = null;
-  for (var i = 0; i < wasps.length; i++)
-  {
-    if (wasps[i].ip == req.ip && wasps[i].port == req.params.port)
-    {
-      found = i;
-      break;
-    }
-  }
+fastify.get('/wasp/heartbeat/:port', (req, res) =>
+{
+  var found = findWasp(req.ip, req.params.port);
 
   if(found === null)
   {
@@ -54,7 +47,7 @@ fastify.get('/wasp/heartbeat/:port', (req, res) =>{
   {
     if(wasps[found])
     {
-      wasps[found].lastHeartbeat = Number(process.hrtime.bigint())/ 1000000;
+      wasps[found].lastHeartbeat = Number(process.hrtime.bigint()) / 1000000;
       res.code(200).send();
     }
     else
@@ -66,23 +59,15 @@ fastify.get('/wasp/heartbeat/:port', (req, res) =>{
 
 fastify.get('/wasp/checkin/:port', (req, res) =>
 {
-  var found = null;
-  for (var i = 0; i < wasps.length; i++)
-  {
-    if (wasps[i].ip == req.ip && wasps[i].port == req.params.port)
-    {
-      found = i;
-      break;
-    }
-  }
+  var found = findWasp(req.ip, req.params.port);
 
   var wasp = {
     ip: req.ip,
     port: req.params.port,
     id: 'BuzzyBoi' + idCount++,
-    lastHeartbeat: Number(process.hrtime.bigint())/ 1000000
+    lastHeartbeat: Number(process.hrtime.bigint()) / 1000000
   }
-  if (found === null)
+  if(found === null)
   {
     wasps.push(wasp);
   }
@@ -96,13 +81,64 @@ fastify.get('/wasp/checkin/:port', (req, res) =>
     id: wasp.id
   });
 
-  console.log(`Wasp ${idCount-1} checking in at ${wasp.ip}!`);
+  console.log(`Wasp ${wasp.id} checking in at ${wasp.ip}!`);
   console.log(`Total Wasps: ${wasps.length}`)
 })
 
 fastify.get('/wasp/list', (req, res) =>
 {
   res.code('200').send(wasps);
+})
+
+fastify.get('/wasp/boop/snoots', (req, res) =>
+{
+  console.log('Booping the snoots of the buzzy bois');
+
+  if(!isRunningRes(res, 200))
+  {
+    if(wasps.length > 0)
+    {
+      var completed_requests = 0;
+      var numOfWasps = wasps.length;
+
+      for(var i = 0; i < numOfWasps; i++)
+      {
+        var waspIndex = i;
+        request(
+        {
+          method: 'GET',
+          uri: `http://${wasps[i].ip}:${wasps[i].port}/boop`
+        }, (err) =>
+        {
+          completed_requests++;
+
+          if(err)
+          {
+            var found = findWasp(err.address, err.port);
+            if(wasps[found])
+            {
+              wasps[found].lastHeartbeat = 0;
+            }
+            else
+            {
+              console.error(err);
+            }
+          }
+
+          if(completed_requests >= numOfWasps)
+          {
+            checkHealtStatus();
+            res.code(200).send(`Hive is operational with ${wasps.length} wasps ready and waiting orders.`);
+            console.log(`Total Wasps: ${wasps.length}`)
+          }
+        });
+      }
+    }
+    else
+    {
+      res.code(400).send('There are no wasps to boop.');
+    }
+  }
 })
 
 fastify.put('/wasp/reportin/:id', (req, res) =>
@@ -112,7 +148,7 @@ fastify.put('/wasp/reportin/:id', (req, res) =>
     return w.id == req.params.id;
   });
 
-  if (wasp)
+  if(wasp)
   {
     waspDoneCount++;
     report.status.completed += 1;
@@ -138,7 +174,7 @@ fastify.put('/wasp/reportin/:id', (req, res) =>
   {
     gError('/wasp/reportin/:id', res);
   }
-  if (waspDoneCount >= waspsRunningCount)
+  if(waspDoneCount >= waspsRunningCount)
   {
     genReport();
   }
@@ -152,7 +188,7 @@ fastify.put('/wasp/reportin/:id/failed', (req, res) =>
     return w.id == req.params.id;
   });
 
-  if (wasp)
+  if(wasp)
   {
     waspDoneCount++;
     report.wasp.reports.push(
@@ -169,7 +205,7 @@ fastify.put('/wasp/reportin/:id/failed', (req, res) =>
   {
     gError('/wasp/reportin/:id/failed', res);
   }
-  if (waspDoneCount >= waspsRunningCount)
+  if(waspDoneCount >= waspsRunningCount)
   {
     genReport();
   }
@@ -182,23 +218,30 @@ fastify.put('/hive/poke', (req, res) =>
   {
     res.code(400).send('There are no wasps to make angry.');
   }
-  else if (!isRunningRes(res))
+  else if(!isRunningRes(res))
   {
-    if (!req.body.target)
+    if(!req.body.target)
     {
       res.code(400).send('need a target, cant shoot into the darkness...')
     }
     else
     {
-      req.body.t = req.body.t || 10;
-      req.body.c = req.body.c || 50;
-      req.body.d = req.body.d || 30;
+      req.body.t = Number(req.body.t || 10);
+      req.body.c = Number(req.body.c || 50);
+      req.body.d = Number(req.body.d || 30);
 
       duration = req.body.d * 1000;
 
       setRunning(true);
 
-      for (var i = 0; i < wasps.length; i++)
+      report.target = req.body.target;
+      report.threads = req.body.t;
+      report.concurrency = req.body.c;
+      report.duration = req.body.d;
+      report.timeout = Number(req.body.timeout || 2);
+      report.script = req.body.script || '';
+
+      for(var i = 0; i < wasps.length; i++)
       {
         request(
         {
@@ -215,7 +258,7 @@ fastify.put('/hive/poke', (req, res) =>
       //shit went down if they don't all respond in duration + 5 seconds
       runTimeout = setTimeout(() =>
       {
-        if (running)
+        if(running)
         {
           genReport();
         }
@@ -229,12 +272,14 @@ fastify.delete('/hive/torch/local', (req, res) =>
   res.code(200).send(`R.I.P All ${localWasps.length} wasps. :'(`);
   console.log(`R.I.P All ${localWasps.length} wasps. :'(`);
 
-  for (var i = 0; i < localWasps.length; i++) {
+  for(var i = 0; i < localWasps.length; i++)
+  {
     process.kill(localWasps[i].pid);
   }
 
-  wasps = wasps.filter(localWasp=>{
-      return  localWasp.ip != this.ip && localWasp.port != this.port
+  wasps = wasps.filter(localWasp =>
+  {
+    return localWasp.ip != this.ip && localWasp.port != this.port
   }, localWasps)
 
   localWasps = [];
@@ -245,9 +290,25 @@ fastify.delete('/hive/torch', (req, res) =>
   res.code(200).send(`R.I.P All ${wasps.length} wasps. :'(`);
   console.log(`R.I.P All ${wasps.length} wasps. :'(`);
 
+  for(var i = 0; i < wasps.length; i++)
+  {
+    request(
+    {
+      method: 'DELETE',
+      uri: `http://${wasps[i].ip}:${wasps[i].port}/die`
+    }, err =>
+    {
+      if(err)
+      {
+        console.error(err);
+      }
+    });
+  }
+
   wasps = [];
 
-  for (var i = 0; i < localWasps.length; i++) {
+  for(var i = 0; i < localWasps.length; i++)
+  {
     process.kill(localWasps[i].pid);
   }
   localWasps = [];
@@ -255,7 +316,7 @@ fastify.delete('/hive/torch', (req, res) =>
 
 fastify.get('/hive/status/done', (req, res) =>
 {
-  if (!isRunningRes(res))
+  if(!isRunningRes(res))
   {
     res.code(200).send('done');
   }
@@ -263,9 +324,9 @@ fastify.get('/hive/status/done', (req, res) =>
 
 fastify.get('/hive/status/report', (req, res) =>
 {
-  if (!isRunningRes(res))
+  if(!isRunningRes(res))
   {
-    if (report)
+    if(report)
     {
       res.code(200).send(report);
     }
@@ -273,15 +334,14 @@ fastify.get('/hive/status/report', (req, res) =>
     {
       res.code(400).send('No report yet.');
     }
-
   }
 })
 
 fastify.get('/hive/status/report/:val', (req, res) =>
 {
-  if (!isRunningRes(res))
+  if(!isRunningRes(res))
   {
-    if (report && report[req.params.val])
+    if(report && report[req.params.val])
     {
       res.code(200).send(report[req.params.val]);
     }
@@ -296,7 +356,7 @@ fastify.get('/hive/status/report/:val', (req, res) =>
 
 fastify.get('/hive/status', (req, res) =>
 {
-  if (!isRunningRes(res, 200))
+  if(!isRunningRes(res, 200))
   {
     res.code(200).send(`Hive is operational with ${wasps.length} wasps ready and waiting orders.`);
   }
@@ -304,7 +364,7 @@ fastify.get('/hive/status', (req, res) =>
 
 fastify.get('/hive/spawn/local/:amount', (req, res) =>
 {
-  if (!isRunningRes(res, 200))
+  if(!isRunningRes(res, 200))
   {
     var wCount = req.params.amount;
 
@@ -316,9 +376,12 @@ fastify.get('/hive/spawn/local/:amount', (req, res) =>
 
 var isRunningRes = function(res, code)
 {
-  if (running)
+  if(running)
   {
-    res.code(code || 425).send(((waspDoneCount / waspsRunningCount) * 100) + "% complete, eta " + Math.round((duration - ((Number(process.hrtime.bigint()) / 1000000) - runTimeStamp))) + "ms to go.");
+    res.code(code || 425).send(
+      Math.round((((duration - ((Number(process.hrtime.bigint()) / 1000000) - runTimeStamp))) / duration) * 100) + "% complete, eta " +
+      Math.round((duration - ((Number(process.hrtime.bigint()) / 1000000) - runTimeStamp))) + "ms to go."
+    );
     return true;
   }
   return false;
@@ -326,11 +389,18 @@ var isRunningRes = function(res, code)
 
 var setRunning = function(run)
 {
-  if (run)
+  if(run)
   {
     running = true;
     runTimeStamp = Number(process.hrtime.bigint()) / 1000000;
     report = {
+      target: '',
+      threads: 0,
+      concurrency: 0,
+      duration: 0,
+      timeout: 2,
+      script: '',
+      startTime: new Date(),
       wasp:
       {
         reports: []
@@ -350,7 +420,6 @@ var setRunning = function(run)
         avg: 0,
         max: 0,
       },
-
       totalRPS: 0,
       totalRequests: 0,
       read: 0,
@@ -380,19 +449,19 @@ var setRunning = function(run)
 var genReport = function()
 {
   console.log(`Reports are in lets see how they are.`);
-  for (var i = 0; i < report.wasp.reports.length; i++)
+  for(var i = 0; i < report.wasp.reports.length; i++)
   {
     var wasp = report.wasp.reports[i];
-    if (wasp.stats)
+    if(wasp.stats)
     {
       report.latency.avg += wasp.stats.latency.avg;
       report.rps.avg += wasp.stats.rps.avg;
 
-      if (wasp.stats.latency.max > report.latency.max)
+      if(wasp.stats.latency.max > report.latency.max)
       {
         report.latency.max = wasp.stats.latency.max;
       }
-      if (wasp.stats.rps.max > report.rps.max)
+      if(wasp.stats.rps.max > report.rps.max)
       {
         report.rps.max = wasp.stats.rps.max;
       }
@@ -430,13 +499,16 @@ var gError = function(route, res)
 
 var spawnWasps = function(wCount)
 {
-  console.log('Starting '+wCount+' Wasps...')
-  for (var i = 0; i < wCount; i++) {
+  console.log('Starting ' + wCount + ' Wasps...')
+  for(var i = 0; i < wCount; i++)
+  {
 
-    var s = require('child_process').spawn('node', [pwd + '/../wasp/wasp.js', `http://127.0.0.1:${hivePort}/`, waspLocalPortIndex, logPath], {
+    var s = require('child_process').spawn('node', [pwd + '/../wasp/wasp.js', `http://127.0.0.1:${hivePort}/`, waspLocalPortIndex, logPath],
+    {
       detached: true
     });
-    localWasps.push({
+    localWasps.push(
+    {
       ip: '127.0.0.1',
       port: waspLocalPortIndex,
       pid: s.pid
@@ -445,15 +517,32 @@ var spawnWasps = function(wCount)
   }
 }
 
+var findWasp = function(ip, port)
+{
+  var found = null;
+  for(var i = 0; i < wasps.length; i++)
+  {
+    if(wasps[i].ip == ip && wasps[i].port == port)
+    {
+      found = i;
+      break;
+    }
+  }
 
-setInterval(()=>{
+  return found;
+}
+
+var checkHealtStatus = function()
+{
   if(wasps.length > 0)
   {
-    wasps = wasps.filter((wasp)=>{
-      var isGood = ((Number(process.hrtime.bigint()) / 1000000)- wasp.lastHeartbeat) < heartBeatInt;
+    wasps = wasps.filter((wasp) =>
+    {
+      var isGood = ((Number(process.hrtime.bigint()) / 1000000) - wasp.lastHeartbeat) < heartBeatInt;
       if(!isGood)
       {
-        localWasps = localWasps.filter((localWasp)=>{
+        localWasps = localWasps.filter((localWasp) =>
+        {
           var isNotDedBoi = localWasp.ip != wasp.ip && localWasp.port != wasp.port;
           if(!isNotDedBoi)
           {
@@ -466,13 +555,16 @@ setInterval(()=>{
       return isGood;
     })
   }
-},heartBeatInt)
+}
+
+//setInterval(checkHealtStatus, heartBeatInt);
 
 
 console.log('Hive ready to release the wasps!')
 fastify.listen(hivePort, '0.0.0.0')
 
-process.on('uncaughtException', function(err) {
+process.on('uncaughtException', function(err)
+{
   console.log(err);
   process.exit();
 });

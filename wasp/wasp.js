@@ -17,7 +17,7 @@ var hive = process.argv[2] || process.env.WWB_HIVE_URL;
 var port = process.argv[3] || process.env.WWB_WASP_PORT || 4268;
 
 
-if (process.argv[4] && process.argv[4] != 'null')
+if(process.argv[4] && process.argv[4] != 'null')
 {
 
   var path = require('path').resolve(process.argv[4]);
@@ -28,44 +28,28 @@ if (process.argv[4] && process.argv[4] != 'null')
   };
 }
 
-if (!hive)
+if(!hive)
 {
   console.error(`Need to set HIVE URL either through WWB_HIVE_URL env or 'wwb-wasp http://<hiveip>:<hiveport>/'`)
   process.exit();
 }
-else
-{
-  request.get(hive + 'wasp/checkin/' + port, (error, response, body) =>
-  {
-    if (error)
-    {
-      console.error(`Hive is not responding! ${error}`)
-      process.exit();
-    }
-    else
-    {
-      id = JSON.parse(body).id;
-      fastify.listen(port, '0.0.0.0')
-      console.log(id + ' ready and listing for your orders!')
-    }
-  })
-}
+
 
 fastify.put('/fire', (req, res) =>
 {
-  if (!running)
+  if(!running)
   {
     running = true;
     req.body = JSON.parse(req.body);
 
-    if (req.body.script)
+    if(req.body.script)
     {
       fs.writeFileSync(pwd + "/wrk.lua", decodeURI(req.body.script));
     }
 
     runWRK(req.body.t, req.body.c, req.body.d, req.body.timeout, req.body.target, req.body.script, cmd =>
     {
-      if (cmd.status != 'failed')
+      if(cmd.status != 'failed')
       {
         console.log('Buzzz buz buz ugh, oof, I mean target destroyed!');
         sendStats(cmd);
@@ -83,7 +67,7 @@ fastify.put('/fire', (req, res) =>
         }, (err, res, body) =>
         {
           running = false;
-          if (!err)
+          if(!err)
           {
             console.log('Hive transmission complete.');
           }
@@ -103,6 +87,25 @@ fastify.put('/fire', (req, res) =>
     res.code('409').send(`I'm already shooting...`);
   }
 })
+
+fastify.delete('/die', (req, res) =>
+{
+  if(!running)
+  {
+    res.code(200).send('iz ded');
+    console.log('Hive killed me...');
+    process.exit();
+  }
+  else
+  {
+    res.code('409').send(`I'm already shooting cant die yet...`);
+  }
+});
+
+fastify.get('/boop', (req, res) =>
+{
+  res.code(200).send('Oh hi');
+});
 
 var runWRK = function runWRK(t, c, d, timeout, target, script, cb)
 {
@@ -126,7 +129,7 @@ var runWRK = function runWRK(t, c, d, timeout, target, script, cb)
 
   bat.on('exit', code =>
   {
-    if (cmd.status != 'failed' && code == 0)
+    if(cmd.status != 'failed' && code == 0)
     {
       cmd.status = 'done';
     }
@@ -168,7 +171,7 @@ var sendStats = function(cmd)
   }
 
 
-  if (tmp.indexOf('errors:') > -1)
+  if(tmp.indexOf('errors:') > -1)
   {
     stats.errors.connect = Number(tmp[tmp.indexOf('connect') + 1].replace(/([^0-9\.])/g, ''));
     stats.errors.read = Number(tmp[tmp.indexOf('connect') + 3].replace(/([^0-9\.])/g, ''));
@@ -177,7 +180,7 @@ var sendStats = function(cmd)
 
   }
 
-  if (tmp.indexOf('3xx') > -1)
+  if(tmp.indexOf('3xx') > -1)
   {
     stats.nonSuccessRequests = Number(tmp[tmp.indexOf('3xx') + 2]) || 0;
   }
@@ -191,7 +194,7 @@ var sendStats = function(cmd)
   }, (err, res, body) =>
   {
     running = false;
-    if (!err)
+    if(!err)
     {
       console.log('Hive transmission complete.');
     }
@@ -212,9 +215,13 @@ setInterval(() =>
     uri: `${hive}wasp/heartbeat/${port}`
   }, (err, res, body) =>
   {
-    if (err)
+    if(err)
     {
       console.log(err)
+    }
+    else if(res.statusCode == 400)
+    {
+      checkIn();
     }
   })
 }, 5000)
@@ -244,7 +251,28 @@ var convertMetric = function(stat)
   return num;
 }
 
-process.on('uncaughtException', function(err) {
+var checkIn = function()
+{
+  request.get(hive + 'wasp/checkin/' + port, (error, response, body) =>
+  {
+    if(error)
+    {
+      console.error(`Hive is not responding! ${error}`)
+      process.exit();
+    }
+    else
+    {
+      id = JSON.parse(body).id;
+      console.log(id + ' ready and listing for your orders!')
+    }
+  });
+}
+
+process.on('uncaughtException', function(err)
+{
   console.log(err);
   process.exit();
 });
+
+fastify.listen(port, '0.0.0.0')
+checkIn();
