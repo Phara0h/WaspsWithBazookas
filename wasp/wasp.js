@@ -17,8 +17,9 @@ var hive = process.argv[2] || process.env.WWB_HIVE_URL;
 var port = process.argv[3] || process.env.WWB_WASP_PORT || 4268;
 
 
-if (process.argv[4])
+if (process.argv[4] && process.argv[4] != 'null')
 {
+
   var path = require('path').resolve(process.argv[4]);
 
   console.log = console.error = function(d)
@@ -26,7 +27,6 @@ if (process.argv[4])
     fs.appendFileSync(path, d + '\n');
   };
 }
-
 
 if (!hive)
 {
@@ -73,6 +73,7 @@ fastify.put('/fire', (req, res) =>
       else
       {
         console.error('Ahhh buzzzz rocket jam.');
+        console.error(cmd.response);
         request(
         {
           method: 'PUT',
@@ -242,3 +243,8 @@ var convertMetric = function(stat)
 
   return num;
 }
+
+process.on('uncaughtException', function(err) {
+  console.log(err);
+  process.exit();
+});
