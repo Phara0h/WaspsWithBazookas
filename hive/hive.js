@@ -23,6 +23,7 @@ var runTimeStamp = 0;
 var idCount = 0;
 var report = null;
 var logPath = null;
+var urlRegex = /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/gm;
 
 if(process.argv[3])
 {
@@ -220,15 +221,16 @@ fastify.put('/hive/poke', (req, res) =>
   }
   else if(!isRunningRes(res))
   {
-    if(!req.body.target)
+    if(!req.body.target || urlRegex.exec(req.body.target) === null)
     {
-      res.code(400).send('need a target, cant shoot into the darkness...')
+      res.code(400).send(`need a vaild target, cant shoot into the darkness...`);
+      console.log('Invalid target')
     }
     else
     {
-      req.body.t = Number(req.body.t || 10);
-      req.body.c = Number(req.body.c || 50);
-      req.body.d = Number(req.body.d || 30);
+      req.body.t = Number(req.body.t) || 10;
+      req.body.c = Number(req.body.c) || 50;
+      req.body.d = Number(req.body.d) || 30;
 
       duration = req.body.d * 1000;
 
@@ -249,12 +251,8 @@ fastify.put('/hive/poke', (req, res) =>
           uri: `http://${wasps[i].ip}:${wasps[i].port}/fire`,
           json: true,
           body: JSON.stringify(req.body)
-        }, err =>
-        {
-          if(err)
-          {
-            console.error(err);
-          }
+        }, err=>{
+          console.error(err);
         })
       }
 

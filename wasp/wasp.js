@@ -16,6 +16,7 @@ var id = 0;
 var hive = process.argv[2] || process.env.WWB_HIVE_URL;
 var port = process.argv[3] || process.env.WWB_WASP_PORT || 4268;
 
+var urlRegex = /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/gm;
 
 if(process.argv[4] && process.argv[4] != 'null')
 {
@@ -39,48 +40,64 @@ fastify.put('/fire', (req, res) =>
 {
   if(!running)
   {
-    running = true;
-    req.body = JSON.parse(req.body);
-
-    if(req.body.script)
+    if(urlRegex.exec(req.body.target) === null)
     {
-      fs.writeFileSync(pwd + "/wrk.lua", decodeURI(req.body.script));
+      res.code('409').send(`Don't understands target`);
+      console.log('Invalid target')
+    }
+    else
+    {
+      running = true;
+
+      if(req.body.script)
+      {
+        fs.writeFileSync(pwd + "/wrk.lua", decodeURI(req.body.script));
+      }
+
+      req.body.t = Number(req.body.t) || 10;
+      req.body.c = Number(req.body.c) || 50;
+      req.body.d = Number(req.body.d) || 30;
+      if(req.body.timeout)
+      {
+        req.body.timeout = Number(req.body.timeout);
+      }
+
+      runWRK(req.body.t, req.body.c, req.body.d, req.body.timeout, req.body.target, req.body.script, cmd =>
+      {
+        if(cmd.status != 'failed')
+        {
+          console.log('Buzzz buz buz ugh, oof, I mean target destroyed!');
+          sendStats(cmd);
+        }
+        else
+        {
+          console.error('Ahhh buzzzz rocket jam.');
+          console.error(cmd.response);
+          request(
+          {
+            method: 'PUT',
+            uri: `${hive}wasp/reportin/${id}/failed`,
+            json: true,
+            body: cmd.response,
+          }, (err, res, body) =>
+          {
+            running = false;
+            if(!err)
+            {
+              console.log('Hive transmission complete.');
+            }
+            else
+            {
+              console.error('Hive do you read me? HIVE? Hive not responding... ');
+            }
+          })
+        }
+
+
+      });
+      res.code('200').send('Rockets launching!');
     }
 
-    runWRK(req.body.t, req.body.c, req.body.d, req.body.timeout, req.body.target, req.body.script, cmd =>
-    {
-      if(cmd.status != 'failed')
-      {
-        console.log('Buzzz buz buz ugh, oof, I mean target destroyed!');
-        sendStats(cmd);
-      }
-      else
-      {
-        console.error('Ahhh buzzzz rocket jam.');
-        console.error(cmd.response);
-        request(
-        {
-          method: 'PUT',
-          uri: `${hive}wasp/reportin/${id}/failed`,
-          json: true,
-          body: cmd.response,
-        }, (err, res, body) =>
-        {
-          running = false;
-          if(!err)
-          {
-            console.log('Hive transmission complete.');
-          }
-          else
-          {
-            console.error('Hive do you read me? HIVE? Hive not responding... ');
-          }
-        })
-      }
-
-
-    });
-    res.code('200').send('Rockets launching!');
   }
   else
   {
@@ -113,6 +130,7 @@ var runWRK = function runWRK(t, c, d, timeout, target, script, cb)
   var cmd = {
     cmd: `wrk -t${t} -c${c} -d${d} ${timeout ? '--timeout '+timeout+' ' :''} ` + (script ? `-s${pwd}/wrk.lua ` : '') + target
   }
+
   var bat = os.platform() == 'win32' ? proc.spawn('cmd.exe', ['/c', cmd.cmd]) : proc.spawn('sh', ['-c', cmd.cmd]);
   cmd.bat = bat;
   cmd.status = 'running';
