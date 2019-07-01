@@ -23,7 +23,7 @@ var runTimeStamp = 0;
 var idCount = 0;
 var report = null;
 var logPath = null;
-var urlRegex = /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/gm;
+
 
 if(process.argv[3])
 {
@@ -221,7 +221,7 @@ fastify.put('/hive/poke', (req, res) =>
   }
   else if(!isRunningRes(res))
   {
-    if(!req.body.target || urlRegex.exec(req.body.target) === null)
+    if(!req.body.target || /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/gm.exec(req.body.target) == null)
     {
       res.code(400).send(`need a vaild target, cant shoot into the darkness...`);
       console.log('Invalid target')
@@ -250,9 +250,12 @@ fastify.put('/hive/poke', (req, res) =>
           method: 'PUT',
           uri: `http://${wasps[i].ip}:${wasps[i].port}/fire`,
           json: true,
-          body: JSON.stringify(req.body)
+          body: req.body
         }, err=>{
-          console.error(err);
+          if(err)
+          {
+            console.error(err);
+          }
         })
       }
 
@@ -383,7 +386,7 @@ var isRunningRes = function(res, code)
   if(running)
   {
     res.code(code || 425).send(
-      Math.round((((duration - ((Number(process.hrtime.bigint()) / 1000000) - runTimeStamp))) / duration) * 100) + "% complete, eta " +
+      Math.round((((((Number(process.hrtime.bigint()) / 1000000) - runTimeStamp))) / duration) * 100) + "% complete, eta " +
       Math.round((duration - ((Number(process.hrtime.bigint()) / 1000000) - runTimeStamp))) + "ms to go."
     );
     return true;
@@ -561,7 +564,7 @@ var checkHealtStatus = function()
   }
 }
 
-//setInterval(checkHealtStatus, heartBeatInt);
+setInterval(checkHealtStatus, heartBeatInt);
 
 
 console.log('Hive ready to release the wasps!')

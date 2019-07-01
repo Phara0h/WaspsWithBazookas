@@ -16,8 +16,6 @@ var id = 0;
 var hive = process.argv[2] || process.env.WWB_HIVE_URL;
 var port = process.argv[3] || process.env.WWB_WASP_PORT || 4268;
 
-var urlRegex = /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/gm;
-
 if(process.argv[4] && process.argv[4] != 'null')
 {
 
@@ -40,7 +38,7 @@ fastify.put('/fire', (req, res) =>
 {
   if(!running)
   {
-    if(urlRegex.exec(req.body.target) === null)
+    if(/^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/gm.exec(req.body.target) == null)
     {
       res.code('409').send(`Don't understands target`);
       console.log('Invalid target')
