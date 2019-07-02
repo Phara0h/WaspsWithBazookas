@@ -144,73 +144,85 @@ fastify.get('/wasp/boop/snoots', (req, res) =>
 
 fastify.put('/wasp/reportin/:id', (req, res) =>
 {
-  var wasp = wasps.find(w =>
+  if(running)
   {
-    return w.id == req.params.id;
-  });
-
-  if(wasp)
-  {
-    waspDoneCount++;
-    report.status.completed += 1;
-    report.wasp.reports.push(
+    var wasp = wasps.find(w =>
     {
-      wasp: wasp,
-      status: 'complete',
-      stats: req.body
-    })
-    report.totalRPS += Number(req.body.totalRPS);
-    report.read += Number(req.body.read);
-    report.totalRequests += Number(req.body.totalRequests);
-    report.tps += Number(req.body.tps);
-    report.errors.connect += Number(req.body.errors.connect) || 0;
-    report.errors.read += Number(req.body.errors.read) || 0;
-    report.errors.write += Number(req.body.errors.write) || 0;
-    report.errors.timeout += Number(req.body.errors.timeout) || 0;
-    report.nonSuccessRequests += req.body.nonSuccessRequests || 0;
+      return w.id == req.params.id;
+    });
 
-    res.send();
+    if(wasp)
+    {
+      waspDoneCount++;
+      report.status.completed += 1;
+      report.wasp.reports.push(
+      {
+        wasp: wasp,
+        status: 'complete',
+        stats: req.body
+      })
+      report.totalRPS += Number(req.body.totalRPS);
+      report.read += Number(req.body.read);
+      report.totalRequests += Number(req.body.totalRequests);
+      report.tps += Number(req.body.tps);
+      report.errors.connect += Number(req.body.errors.connect) || 0;
+      report.errors.read += Number(req.body.errors.read) || 0;
+      report.errors.write += Number(req.body.errors.write) || 0;
+      report.errors.timeout += Number(req.body.errors.timeout) || 0;
+      report.nonSuccessRequests += req.body.nonSuccessRequests || 0;
+
+      res.send();
+    }
+    else
+    {
+      gError('/wasp/reportin/:id', res);
+    }
+    if(waspDoneCount >= waspsRunningCount)
+    {
+      genReport();
+    }
   }
   else
   {
     gError('/wasp/reportin/:id', res);
   }
-  if(waspDoneCount >= waspsRunningCount)
-  {
-    genReport();
-  }
 })
 
 fastify.put('/wasp/reportin/:id/failed', (req, res) =>
 {
-
-  var wasp = wasps.find(w =>
+  if(running)
   {
-    return w.id == req.params.id;
-  });
-
-  if(wasp)
-  {
-    waspDoneCount++;
-    report.wasp.reports.push(
+    var wasp = wasps.find(w =>
     {
-      wasp: wasp,
-      status: 'failed',
-      error: req.body
+      return w.id == req.params.id;
     });
-    report.status.failed += 1;
 
-    res.send();
+    if(wasp)
+    {
+      waspDoneCount++;
+      report.wasp.reports.push(
+      {
+        wasp: wasp,
+        status: 'failed',
+        error: req.body
+      });
+      report.status.failed += 1;
+
+      res.send();
+    }
+    else
+    {
+      gError('/wasp/reportin/:id/failed', res);
+    }
+    if(waspDoneCount >= waspsRunningCount)
+    {
+      genReport();
+    }
   }
   else
   {
-    gError('/wasp/reportin/:id/failed', res);
+    gError('/wasp/reportin/:id', res);
   }
-  if(waspDoneCount >= waspsRunningCount)
-  {
-    genReport();
-  }
-
 })
 
 fastify.put('/hive/poke', (req, res) =>
@@ -251,7 +263,8 @@ fastify.put('/hive/poke', (req, res) =>
           uri: `http://${wasps[i].ip}:${wasps[i].port}/fire`,
           json: true,
           body: req.body
-        }, err=>{
+        }, err =>
+        {
           if(err)
           {
             console.error(err);
@@ -267,6 +280,8 @@ fastify.put('/hive/poke', (req, res) =>
       {
         if(running)
         {
+          report.status.failed += waspsRunningCount - waspDoneCount;
+
           genReport();
         }
       }, (req.body.d + 5) * 1000);
@@ -385,10 +400,20 @@ var isRunningRes = function(res, code)
 {
   if(running)
   {
-    res.code(code || 425).send(
-      Math.round((((((Number(process.hrtime.bigint()) / 1000000) - runTimeStamp))) / duration) * 100) + "% complete, eta " +
-      Math.round((duration - ((Number(process.hrtime.bigint()) / 1000000) - runTimeStamp))) + "ms to go."
-    );
+    var stat = {
+      running:
+      {
+        target: report.target,
+        threads: report.threads,
+        concurrency: report.concurrency,
+        duration: report.duration,
+        timeout: report.timeout,
+        script: report.script
+      },
+      percent: Math.round((((((Number(process.hrtime.bigint()) / 1000000) - runTimeStamp))) / duration) * 100) + '%',
+      eta: Math.round((duration - ((Number(process.hrtime.bigint()) / 1000000) - runTimeStamp))) + "ms"
+    }
+    res.code(code || 400).send(stat);
     return true;
   }
   return false;

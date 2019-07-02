@@ -16,7 +16,7 @@ program.on('command:*', function()
 var spawn = function()
 {
   console.log('Starting Hive...')
-  var h = require('child_process').spawn('node', [pwd + '/../hive/hive.js', config.instance.hive.port, require('path').resolve(program.log)],
+  var h = require('child_process').spawn('node', [pwd + '/../hive/hive.js', config.instance.hive.port, program.log ? require('path').resolve(program.log) : ''],
   {
     detached: true
   });
@@ -64,7 +64,10 @@ var stopInstances = function(cb)
       config.instance.hive.pid = null;
       config.wasps = [];
       saveConfig();
-      cb();
+      if(cb)
+      {
+        cb();
+      }
     })
   }
   else

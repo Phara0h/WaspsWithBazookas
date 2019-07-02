@@ -15,6 +15,7 @@ var running = false;
 var id = 0;
 var hive = process.argv[2] || process.env.WWB_HIVE_URL;
 var port = process.argv[3] || process.env.WWB_WASP_PORT || 4268;
+var currentWRKProcess = null;
 
 if(process.argv[4] && process.argv[4] != 'null')
 {
@@ -36,11 +37,14 @@ if(!hive)
 
 fastify.put('/fire', (req, res) =>
 {
+  // If wrk hangs kill it first;
+  stopWRK();
+
   if(!running)
   {
     if(/^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/gm.exec(req.body.target) == null)
     {
-      res.code('409').send(`Don't understands target`);
+      res.code('400').send(`Don't understands target`);
       console.log('Invalid target')
     }
     else
@@ -62,7 +66,11 @@ fastify.put('/fire', (req, res) =>
 
       runWRK(req.body.t, req.body.c, req.body.d, req.body.timeout, req.body.target, req.body.script, cmd =>
       {
-        if(cmd.status != 'failed')
+        if(cmd.status == 'stopped')
+        {
+          console.log('No need to let the hive know.');
+        }
+        else if(cmd.status == 'done')
         {
           console.log('Buzzz buz buz ugh, oof, I mean target destroyed!');
           sendStats(cmd);
@@ -90,16 +98,13 @@ fastify.put('/fire', (req, res) =>
             }
           })
         }
-
-
       });
       res.code('200').send('Rockets launching!');
     }
-
   }
   else
   {
-    res.code('409').send(`I'm already shooting...`);
+    res.code('400').send(`I'm already shooting...`);
   }
 })
 
@@ -113,7 +118,7 @@ fastify.delete('/die', (req, res) =>
   }
   else
   {
-    res.code('409').send(`I'm already shooting cant die yet...`);
+    res.code('400').send(`I'm already shooting cant die yet...`);
   }
 });
 
@@ -122,14 +127,28 @@ fastify.get('/boop', (req, res) =>
   res.code(200).send('Oh hi');
 });
 
+fastify.get('/ceasefire', (req, res) =>
+{
+  console.log('Ceasefire called!');
+  if(stopWRK())
+  {
+    res.code(200).send('Ok i stops');
+  }
+  else
+  {
+    res.code(400).send('Was not firing 0__0');
+  }
+});
+
 var runWRK = function runWRK(t, c, d, timeout, target, script, cb)
 {
   console.log(`Shooting ${target} with bazookas!`);
   var cmd = {
-    cmd: `wrk -t${t} -c${c} -d${d} ${timeout ? '--timeout '+timeout+' ' :''} ` + (script ? `-s${pwd}/wrk.lua ` : '') + target
+    cmd: `wrk -t${t} -c${c} -d${d} --timeout ${timeout ? timeout :'2'} ` + (script ? `-s${pwd}/wrk.lua ` : '') + target
   }
 
   var bat = os.platform() == 'win32' ? proc.spawn('cmd.exe', ['/c', cmd.cmd]) : proc.spawn('sh', ['-c', cmd.cmd]);
+  currentWRKProcess = bat.pid;
   cmd.bat = bat;
   cmd.status = 'running';
   cmd.response = "";
@@ -145,13 +164,37 @@ var runWRK = function runWRK(t, c, d, timeout, target, script, cb)
 
   bat.on('exit', code =>
   {
-    if(cmd.status != 'failed' && code == 0)
+    if(cmd.status != 'failed' && code === 0)
     {
       cmd.status = 'done';
+      currentWRKProcess = cmd.bat = null;
     }
-    cmd.bat = null;
+    else if (code === null)
+    {
+      cmd.status = 'stopped';
+    }
+    else
+    {
+      currentWRKProcess = cmd.bat = null;
+    }
+
     cb(cmd);
   });
+}
+
+var stopWRK = function()
+{
+  if(currentWRKProcess)
+  {
+    var pid = currentWRKProcess;
+    currentWRKProcess = null;
+    process.kill(pid);
+    running = false;
+    console.log('Ok i stops firing now.');
+    return true;
+  }
+
+  return false;
 }
 
 var sendStats = function(cmd)
@@ -223,24 +266,7 @@ var sendStats = function(cmd)
   console.log('Reporting back to hive.');
 }
 
-setInterval(() =>
-{
-  request(
-  {
-    method: 'GET',
-    uri: `${hive}wasp/heartbeat/${port}`
-  }, (err, res, body) =>
-  {
-    if(err)
-    {
-      console.log(err)
-    }
-    else if(res.statusCode == 400)
-    {
-      checkIn();
-    }
-  })
-}, 5000)
+
 
 var convertStat = function(stat, unit)
 {
@@ -274,7 +300,6 @@ var checkIn = function()
     if(error)
     {
       console.error(`Hive is not responding! ${error}`)
-      process.exit();
     }
     else
     {
@@ -284,11 +309,33 @@ var checkIn = function()
   });
 }
 
+var heartBeat = function()
+{
+  request(
+  {
+    method: 'GET',
+    uri: `${hive}wasp/heartbeat/${port}`
+  }, (err, res, body) =>
+  {
+    if(err)
+    {
+      console.log(`Hive is not responding! ${err}`)
+    }
+    else if(res.statusCode == 400)
+    {
+      checkIn();
+    }
+  })
+}
+
+
 process.on('uncaughtException', function(err)
 {
   console.log(err);
   process.exit();
 });
 
-fastify.listen(port, '0.0.0.0')
-checkIn();
+fastify.listen(port, '0.0.0.0');
+
+heartBeat();
+setInterval(heartBeat, 5000)
