@@ -1,4 +1,7 @@
-# WaspsWithBazookas
+
+ <img src="https://i.imgur.com/e5WUHB2.png" alt="https://www.npmjs.com/package/waspswithbazookas" data-canonical-src="https://i.imgur.com/e5WUHB2.png" width="350" height="350" />
+
+# Wasps With Bazookas
 Its like bees with machine guns but way more power
 
 Do not use this to DDOS for the lulz or any other purpose on servers you don't own, it is illegal . Don't say I did not tell you so.
