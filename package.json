@@ -1,6 +1,6 @@
 {
   "name": "waspswithbazookas",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "description": "Its like bees with machine guns but way more power",
   "main": "./hive/hive.js",
   "scripts": {
