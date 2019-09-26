@@ -104,10 +104,6 @@ program
           {
             ip: '0.0.0.0',
             port: program.hivePort || '4269'
-          },
-          wasp:
-          {
-            ip: '0.0.0.0'
           }
         }
       }

@@ -34,7 +34,14 @@ if(process.argv[3])
     fs.appendFileSync(logPath, d + '\n');
   };
 }
+fastify.register(require('fastify-static'), {
+    root: __dirname+"/client",
+    serve: false,
+});
 
+fastify.get('/', (req, res) =>{
+    res.sendFile('index.html');
+});
 fastify.get('/wasp/heartbeat/:port', (req, res) =>
 {
   var found = findWasp(req.ip, req.params.port);
@@ -128,7 +135,7 @@ fastify.get('/wasp/boop/snoots', (req, res) =>
 
           if(completed_requests >= numOfWasps)
           {
-            checkHealtStatus();
+            checkHealthStatus();
             res.code(200).send(`Hive is operational with ${wasps.length} wasps ready and waiting orders.`);
             console.log(`Total Wasps: ${wasps.length}`)
           }
@@ -564,7 +571,7 @@ var findWasp = function(ip, port)
   return found;
 }
 
-var checkHealtStatus = function()
+var checkHealthStatus = function()
 {
   if(wasps.length > 0)
   {
@@ -589,7 +596,7 @@ var checkHealtStatus = function()
   }
 }
 
-setInterval(checkHealtStatus, heartBeatInt);
+setInterval(checkHealthStatus, heartBeatInt);
 
 
 console.log('Hive ready to release the wasps!')

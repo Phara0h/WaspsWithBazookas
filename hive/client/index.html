@@ -1,0 +1,99 @@
+<html>
+<head>
+  <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    html {
+      font-family: 'Roboto', sans-serif;
+    }
+    .center {
+      position: fixed; /* or absolute */
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+    .center > img {
+      width: 350px;
+      height: 350px;
+
+    }
+    body > div.center > div:nth-child(3) img{
+      width: 50px;
+      height: 50px;
+    }
+    .bg-image {
+      background: url(https://i.imgur.com/tsCdexD.png);
+      filter: blur(8px);
+      -webkit-filter: blur(8px);
+
+      /* Full height */
+      height: 120%;
+      width: 120%;
+      /* Center and scale the image nicely */
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      overflow:hidden;
+      position: fixed; /* or absolute */
+      top: 55%;
+      left: 55%;
+      transform: translate(-50%, -50%);
+    }
+    body > div.center > div:nth-child(3)  {
+      display: flex;
+      align-items: center;
+    }
+    body > div.center > div:nth-child(3) > a:nth-child(1) {
+      background: rgba(62, 63, 82, 0.8);
+      display: flex;
+      align-items: center;
+      flex-direction: column-reverse;
+      width: 100%;
+      border-radius: 8px;
+      margin: 10px;
+      padding: 5px;
+      color:white;
+      box-shadow: 0 6px 10px 0 rgba(27,28,30,.31);
+      text-decoration: none;
+    }
+
+    body > div.center > div:nth-child(3) > a:nth-child(2) {
+      background: rgba(254, 198, 5, 0.3);
+      display: flex;
+      align-items: center;
+      flex-direction: column-reverse;
+      width: 100%;
+      border-radius: 8px;
+      margin: 10px;
+      padding: 5px;
+      color:white;
+      box-shadow: 0 6px 10px 0 rgba(27,28,30,.31);
+      text-decoration: none;
+    }
+    body > div.center > div:nth-child(2) {
+      font-size: 25px;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: bold;
+      text-shadow: 0 6px 10px rgba(27,28,30,.31);
+    }
+
+  </style>
+</head>
+ <body>
+   <div class="bg-image"></div>
+   <div class="center">
+     <img src="https://i.imgur.com/Q1hKRLQ.png"/>
+      <div>Control this Hive directly via: </div>
+      <div>
+          <a href="https://documenter.getpostman.com/view/208035/S1a1YnXU?version=latest">
+             REST
+             <img src="https://assets.getpostman.com/common-share/postman-logo-stacked.svg">
+          </a>
+          <a href="https://www.npmjs.com/package/wwb-sdk">
+              Node.js SDK
+              <img src="https://imgur.com/XBD5nMq.png"/>
+          </a>
+      </div>
+   </div>
+</body>
+</html>
