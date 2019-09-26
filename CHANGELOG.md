@@ -2,13 +2,13 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
-#### [1.2.6](https://github.com/Phara0h/WaspsWithBazookas/compare/1.2.4...1.2.6)
+#### [1.2.7](https://github.com/Phara0h/WaspsWithBazookas/compare/1.2.4...1.2.7)
 
 > 26 September 2019
 
+- Added landing page on / [`08c9e89`](https://github.com/Phara0h/WaspsWithBazookas/commit/08c9e894617717f0c16528307520669938793021)
 - Update README.md [`df8071f`](https://github.com/Phara0h/WaspsWithBazookas/commit/df8071f18e9ae25f9030039b1a5d8bcc48a241b4)
 - Update package.json [`427207f`](https://github.com/Phara0h/WaspsWithBazookas/commit/427207f3dd6ac22dc29dde4018d0e77a800ac649)
-- Delete _config.yml [`832a1dc`](https://github.com/Phara0h/WaspsWithBazookas/commit/832a1dcc321e60f7924688a7fa895180638918a6)
 
 #### [1.2.4](https://github.com/Phara0h/WaspsWithBazookas/compare/1.2.3...1.2.4)
 
