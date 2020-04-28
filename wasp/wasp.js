@@ -68,7 +68,25 @@ fastify.put('/fire', (req, res) =>
       {
         if(cmd.status == 'stopped')
         {
-          console.log('No need to let the hive know.');
+          console.log('I tell hive now.');
+          request(
+          {
+            method: 'PUT',
+            uri: `${hive}wasp/reportin/${id}/failed`,
+            json: true,
+            body: 'I stopped now what?',
+          }, (err, res, body) =>
+          {
+            running = false;
+            if(!err)
+            {
+              console.log('Hive transmission complete.');
+            }
+            else
+            {
+              console.error('Hive do you read me? HIVE? Hive not responding... ');
+            }
+          })
         }
         else if(cmd.status == 'done')
         {

@@ -231,7 +231,33 @@ fastify.put('/wasp/reportin/:id/failed', (req, res) =>
     gError('/wasp/reportin/:id', res);
   }
 })
+fastify.get('/hive/ceasefire', (req, res) =>
+{
+  if(!isRunningRes(res))
+  {
+    res.code(400).send('They are already idle.');
+  }
+  else
+  {
+    for(var i = 0; i < wasps.length; i++)
+    {
+      request(
+      {
+        method: 'GET',
+        uri: `http://${wasps[i].ip}:${wasps[i].port}/ceasefire`
+      }, err =>
+      {
+        if(err)
+        {
+          console.error(err);
+        }
+      })
+    }
 
+    res.code(200).send('Only the sound of buzzing can be heard.');
+    console.log('Sending command to ceasefire!');
+  }
+})
 fastify.put('/hive/poke', (req, res) =>
 {
   if(wasps.length <= 0)
