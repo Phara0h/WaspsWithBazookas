@@ -2,9 +2,18 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [v1.3.0](https://github.com/Phara0h/WaspsWithBazookas/compare/v1.2.8...v1.3.0)
+
+> 28 April 2020
+
+- Added /hive/ceasefire, removed node_modules and fixed security modules. [`5c57f6d`](https://github.com/Phara0h/WaspsWithBazookas/commit/5c57f6d0af921dd08ee38bf8dab9628fe59d5697)
+- Set theme jekyll-theme-slate [`f279cd7`](https://github.com/Phara0h/WaspsWithBazookas/commit/f279cd7d72a98ffc064b97a4b0c2626f2184cb04)
+
 #### [v1.2.8](https://github.com/Phara0h/WaspsWithBazookas/compare/v1.2.7...v1.2.8)
 
 > 26 September 2019
+
+- Added landing page on / [`c0b2aaf`](https://github.com/Phara0h/WaspsWithBazookas/commit/c0b2aafd68fd0e50aacc7ac357db3e593b42449e)
 
 #### [v1.2.7](https://github.com/Phara0h/WaspsWithBazookas/compare/1.2.4...v1.2.7)
 
