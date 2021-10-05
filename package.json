@@ -34,7 +34,7 @@
     "commander": "^2.20.0",
     "convert-units": "^2.3.4",
     "fastify": "^2.4.1",
-    "fastify-static": "^2.5.0",
+    "fastify-static": "^4.2.4",
     "request": "^2.88.0"
   },
   "devDependencies": {
