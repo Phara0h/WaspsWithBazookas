@@ -51,12 +51,6 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Phara0h/WaspsWithBazoo
 brew install waspswithbazookas
 ```
 
-**Windows (Chocolatey):**
-```powershell
-# Install
-choco install waspswithbazookas
-```
-
 ### **Option 3: Docker**
 
 ```bash
