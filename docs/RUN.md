@@ -467,7 +467,7 @@ You now have the knowledge to command your wasp army effectively! Remember:
 
 ## 📚 Additional Resources
 
-- **[API Documentation](API.md)** - Complete API reference
+- **[API Documentation](docs/API.md)** - Complete API reference
 - **[Examples](https://github.com/Phara0h/WaspsWithBazookas/tree/main/examples)** - Real-world usage examples
 - **[GitHub Issues](https://github.com/Phara0h/WaspsWithBazookas/issues)** - Report bugs and request features
 - **[Discussions](https://github.com/Phara0h/WaspsWithBazookas/discussions)** - Community support and ideas

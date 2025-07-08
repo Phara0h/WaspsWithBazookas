@@ -123,16 +123,16 @@ hive --port 4269
 
 **Boom!** You just launched a distributed load test with 2 wasps, each using 10 threads and 100 connections for 30 seconds. That's 2,000 concurrent connections hitting your target! 🎯
 
-> 💡 **Pro Tip**: The test dummy server now provides ultra-fast, httpbin-style endpoints for every load testing scenario. See the [Test Dummy Guide](TEST_DUMMY.md) for details! Very useful for testing infrastructure sicne you don't want the http server to be the bottleneck.
+> 💡 **Pro Tip**: The test dummy server now provides ultra-fast, httpbin-style endpoints for every load testing scenario. See the [Test Dummy Guide](docs/TEST_DUMMY.md) for details! Very useful for testing infrastructure sicne you don't want the http server to be the bottleneck.
 
 ---
 
 ## 📚 What's Next?
 
-- **[Installation Guide](INSTALL.md)** - Get WaspsWithBazookas running on your system many options available
-- **[Usage Guide](RUN.md)** - Learn how to command your wasp army
-- **[Test Dummy Guide](TEST_DUMMY.md)** - Use the built-in test server for ultra-fast, httpbin-style load testing
-- **[API Documentation](API.md)** - Full REST API reference
+- **[Installation Guide](docs/INSTALL.md)** - Get WaspsWithBazookas running on your system many options available
+- **[Usage Guide](docs/RUN.md)** - Learn how to command your wasp army
+- **[Test Dummy Guide](docs/TEST_DUMMY.md)** - Use the built-in test server for ultra-fast, httpbin-style load testing
+- **[API Documentation](docs/API.md)** - Full REST API reference
 - **[Postman Collection](https://github.com/Phara0h/WaspsWithBazookas/blob/main/waspswithbazookas.postman_collection.json)** - Postman collection for the API
 - **[GitHub Issues](https://github.com/Phara0h/WaspsWithBazookas/issues)** - Report bugs and request features
 - **[Discussions](https://github.com/Phara0h/WaspsWithBazookas/discussions)** - Community support and ideas
@@ -146,10 +146,10 @@ Found a bug? Want to add features? We'd love your help! Check out our [Contribut
 
 ## 📄 License
 
-This project is licensed under the GNU General Public License v2.0 - see the [LICENSE](../LICENSE) file for details.
+This project is licensed under the GNU General Public License v2.0 - see the [LICENSE](LICENSE) file for details.
 
 ---
-
+---
 
 ### Changelog
 
@@ -157,6 +157,13 @@ All notable changes to this project will be documented in this file. Dates are d
 
 #### [v2.0.0](https://github.com/Phara0h/WaspsWithBazookas/compare/v2.0.1...v2.0.0)
 
+- Update release.yml [`606a295`](https://github.com/Phara0h/WaspsWithBazookas/commit/606a29540651f21e130980f02796e58e58ec6a1a)
+- Update release.yml [`de332e9`](https://github.com/Phara0h/WaspsWithBazookas/commit/de332e963840e045fe62254fa4881af5f0ed7ad1)
+- Update release.yml [`efa001c`](https://github.com/Phara0h/WaspsWithBazookas/commit/efa001c101a6d26a14542bf19ba5ccfa47cf8197)
+- Update release.yml [`040bfec`](https://github.com/Phara0h/WaspsWithBazookas/commit/040bfec1f47e4b7884fdb33a7f31381a623a5d4a)
+- Updated workflows [`c595a54`](https://github.com/Phara0h/WaspsWithBazookas/commit/c595a54fbbde72bc295ebe0e4cdcb948a3f5d9c3)
+- Update release.yml [`3039cea`](https://github.com/Phara0h/WaspsWithBazookas/commit/3039cea1bf9a367d39e19e702bb9116dbd32549a)
+- Fixed readme [`d7215e7`](https://github.com/Phara0h/WaspsWithBazookas/commit/d7215e7cc670f9a92e41546134bc82f5da5a0434)
 - Fix autochange log [`2b33b55`](https://github.com/Phara0h/WaspsWithBazookas/commit/2b33b55df4079d7819b29c19671d15ddb9a3bd5e)
 
 #### [v2.0.1](https://github.com/Phara0h/WaspsWithBazookas/compare/v2.0.0...v2.0.1)

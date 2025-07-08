@@ -45,8 +45,14 @@ jobs:
       
       - name: Build
         run: |
-          # Use cross for all targets - it handles native and cross-compilation automatically
-          cross build --release --target ${{ matrix.target }}
+          # Use cross for cross-compilation targets, cargo for native targets
+          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
+            # Cross-compilation for ARM64 Linux
+            cross build --release --target ${{ matrix.target }}
+          else
+            # Native compilation for other targets
+            cargo build --release --target ${{ matrix.target }}
+          fi
           
           mkdir -p dist
           cp target/${{ matrix.target }}/release/hive dist/hive

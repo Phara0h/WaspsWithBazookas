@@ -201,6 +201,6 @@ The Test Dummy Server is now the perfect, ultra-fast, zero-dependency target for
 
 ## 📚 Related Documentation
 
-- **[Installation Guide](INSTALL.md)**
-- **[Usage Guide](RUN.md)**
-- **[API Documentation](API.md)** 
+- **[Installation Guide](docs/INSTALL.md)**
+- **[Usage Guide](docs/RUN.md)**
+- **[API Documentation](docs/API.md)** 
