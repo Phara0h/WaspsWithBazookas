@@ -78,13 +78,22 @@ jobs:
   homebrew:
     needs: release
     runs-on: ubuntu-latest
-    if: ${{ secrets.HOMEBREW_TAP_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       
+      - name: Check for Homebrew token
+        id: check_token
+        run: |
+          if [ -n "${{ secrets.HOMEBREW_TAP_TOKEN }}" ]; then
+            echo "token_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "token_exists=false" >> $GITHUB_OUTPUT
+          fi
+      
       - name: Calculate SHA256
         id: sha256
+        if: steps.check_token.outputs.token_exists == 'true'
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
           curl -L -o macos_x86_64.tar.gz "https://github.com/Phara0h/WaspsWithBazookas/releases/download/${VERSION}/waspswithbazookas-macos-x86_64.tar.gz"
@@ -92,6 +101,7 @@ jobs:
           echo "sha256_macos_x86_64=$SHA256_MACOS_X86_64" >> $GITHUB_OUTPUT
       
       - name: Update Homebrew Formula
+        if: steps.check_token.outputs.token_exists == 'true'
         uses: dawidd6/action-homebrew-bump-formula@v4
         with:
           formula-name: waspswithbazookas
@@ -100,4 +110,10 @@ jobs:
           sha256: ${{ steps.sha256.outputs.sha256_macos_x86_64 }}
           commit-message: "Update waspswithbazookas to ${{ github.event.release.tag_name }}"
         env:
-          COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }} 
+          COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+      
+      - name: Skip Homebrew update
+        if: steps.check_token.outputs.token_exists == 'false'
+        run: |
+          echo "HOMEBREW_TAP_TOKEN not found, skipping Homebrew formula update"
+          echo "To enable Homebrew updates, add HOMEBREW_TAP_TOKEN to your repository secrets" 
