@@ -1,6 +1,7 @@
 name: Update Homebrew Formula
 
 on:
+  workflow_dispatch:
   release:
     types: [published]
 
@@ -38,7 +39,7 @@ jobs:
           echo "sha256_linux_aarch64=$SHA256_LINUX_AARCH64" >> $GITHUB_OUTPUT
       
       - name: Update Homebrew Formula
-        uses: dawidd6/action-homebrew-bump-formula@v3
+        uses: dawidd6/action-homebrew-bump-formula@v4
         with:
           formula-name: waspswithbazookas
           homebrew-tap: Phara0h/homebrew-waspswithbazookas

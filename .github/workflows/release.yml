@@ -1,6 +1,7 @@
 name: Release
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - 'v*'
@@ -47,7 +48,7 @@ jobs:
           tar -czf ${{ matrix.asset_name }}.tar.gz -C dist .
       
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.asset_name }}
           path: ${{ matrix.asset_name }}.tar.gz
@@ -57,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
       
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -91,7 +92,7 @@ jobs:
           echo "sha256_macos_x86_64=$SHA256_MACOS_X86_64" >> $GITHUB_OUTPUT
       
       - name: Update Homebrew Formula
-        uses: dawidd6/action-homebrew-bump-formula@v3
+        uses: dawidd6/action-homebrew-bump-formula@v4
         with:
           formula-name: waspswithbazookas
           homebrew-tap: Phara0h/homebrew-waspswithbazookas
