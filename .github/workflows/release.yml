@@ -98,9 +98,18 @@ jobs:
           SHA256_MACOS_X86_64=$(sha256sum macos_x86_64.tar.gz | cut -d' ' -f1)
           echo "sha256_macos_x86_64=$SHA256_MACOS_X86_64" >> $GITHUB_OUTPUT
       
+      - name: Debug Homebrew Action
+        if: steps.check_token.outputs.token_exists == 'true'
+        run: |
+          echo "Formula name: waspswithbazookas"
+          echo "Homebrew tap: Phara0h/homebrew-waspswithbazookas"
+          echo "Download URL: https://github.com/Phara0h/WaspsWithBazookas/releases/download/${{ github.event.release.tag_name }}/waspswithbazookas-macos-x86_64.tar.gz"
+          echo "SHA256: ${{ steps.sha256.outputs.sha256_macos_x86_64 }}"
+          echo "Tag name: ${{ github.event.release.tag_name }}"
+      
       - name: Update Homebrew Formula
         if: steps.check_token.outputs.token_exists == 'true'
-        uses: dawidd6/action-homebrew-bump-formula@v4
+        uses: dawidd6/action-homebrew-bump-formula@v3
         with:
           formula-name: waspswithbazookas
           homebrew-tap: Phara0h/homebrew-waspswithbazookas
