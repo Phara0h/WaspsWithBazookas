@@ -23,14 +23,162 @@ jobs:
           $hash = Get-FileHash -Algorithm SHA256 "waspswithbazookas.tar.gz"
           echo "sha256=$($hash.Hash.ToLower())" >> $env:GITHUB_OUTPUT
       
-      - name: Update Chocolatey Package
-        uses: chocolatey/chocolatey-package-actions@v1
+      - name: Checkout Chocolatey Packages Repository
+        uses: actions/checkout@v4
         with:
-          package-id: waspswithbazookas
-          package-version: ${{ github.event.release.tag_name }}
-          package-url: https://github.com/Phara0h/WaspsWithBazookas/releases/download/${{ github.event.release.tag_name }}/waspswithbazookas-windows-x86_64.tar.gz
-          package-checksum: ${{ steps.sha256.outputs.sha256 }}
-          package-checksum-type: sha256
-          push-to-repository: true
-        env:
-          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }} 
+          repository: chocolatey-community/chocolatey-packages
+          token: ${{ secrets.CHOCOLATEY_API_KEY }}
+          path: chocolatey-packages
+      
+      - name: Update Chocolatey Package
+        run: |
+          cd chocolatey-packages
+          
+          # Download the package template or create one
+          if [ ! -f "automatic/waspswithbazookas/waspswithbazookas.nuspec" ]; then
+            mkdir -p automatic/waspswithbazookas
+            cat > automatic/waspswithbazookas/waspswithbazookas.nuspec << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>waspswithbazookas</id>
+    <version>${{ github.event.release.tag_name }}</version>
+    <title>WaspsWithBazookas</title>
+    <authors>Phara0h</authors>
+    <projectUrl>https://github.com/Phara0h/WaspsWithBazookas</projectUrl>
+    <licenseUrl>https://github.com/Phara0h/WaspsWithBazookas/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/Phara0h/WaspsWithBazookas</projectSourceUrl>
+    <docsUrl>https://github.com/Phara0h/WaspsWithBazookas</docsUrl>
+    <bugTrackerUrl>https://github.com/Phara0h/WaspsWithBazookas/issues</bugTrackerUrl>
+    <tags>waspswithbazookas load-testing http-testing distributed-testing rust</tags>
+    <summary>Distributed HTTP/S load testing tool with cluster-based architecture</summary>
+    <description>
+      WaspsWithBazookas is your ultimate distributed load testing weapon. 
+      Think of it as having an army of angry wasps, each armed with rocket launchers, 
+      ready to absolutely obliterate your servers with HTTP requests.
+    </description>
+    <releaseNotes>https://github.com/Phara0h/WaspsWithBazookas/releases</releaseNotes>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>
+EOF
+          fi
+          
+          # Update the version in the nuspec file
+          sed -i "s/<version>.*<\/version>/<version>${{ github.event.release.tag_name }}<\/version>/" automatic/waspswithbazookas/waspswithbazookas.nuspec
+          
+          # Create the tools directory and chocolateyInstall.ps1
+          mkdir -p automatic/waspswithbazookas/tools
+          cat > automatic/waspswithbazookas/tools/chocolateyInstall.ps1 << 'EOF'
+$ErrorActionPreference = 'Stop'
+
+$packageName = 'waspswithbazookas'
+$url = 'https://github.com/Phara0h/WaspsWithBazookas/releases/download/${{ github.event.release.tag_name }}/waspswithbazookas-windows-x86_64.tar.gz'
+$checksum = '${{ steps.sha256.outputs.sha256 }}'
+$checksumType = 'sha256'
+$toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
+
+# Download and extract
+$tempDir = Join-Path $env:TEMP $packageName
+if (!(Test-Path $tempDir)) { New-Item -ItemType Directory -Path $tempDir | Out-Null }
+
+$zipFile = Join-Path $tempDir "$packageName.zip"
+Invoke-WebRequest -Uri $url -OutFile $zipFile -UseBasicParsing
+
+# Verify checksum
+$hash = Get-FileHash -Path $zipFile -Algorithm $checksumType
+if ($hash.Hash -ne $checksum) {
+    throw "Checksum verification failed. Expected: $checksum, Got: $($hash.Hash)"
+}
+
+# Extract
+Expand-Archive -Path $zipFile -DestinationPath $tempDir -Force
+
+# Install binaries
+$binDir = Join-Path $toolsDir "bin"
+if (!(Test-Path $binDir)) { New-Item -ItemType Directory -Path $binDir | Out-Null }
+
+Copy-Item -Path "$tempDir\hive.exe" -Destination $binDir -Force
+Copy-Item -Path "$tempDir\wasp.exe" -Destination $binDir -Force
+Copy-Item -Path "$tempDir\test-dummy.exe" -Destination $binDir -Force
+
+# Create shims
+Install-ChocolateyPath -PathToInstall $binDir -PathType Machine
+EOF
+          
+          # Create chocolateyUninstall.ps1
+          cat > automatic/waspswithbazookas/tools/chocolateyUninstall.ps1 << 'EOF'
+$ErrorActionPreference = 'Stop'
+
+$toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
+$binDir = Join-Path $toolsDir "bin"
+
+# Remove binaries
+if (Test-Path $binDir) {
+    Remove-Item -Path $binDir -Recurse -Force
+}
+
+# Remove from PATH (Chocolatey handles this automatically)
+EOF
+          
+          # Create .nuspec file for the package
+          cat > automatic/waspswithbazookas/waspswithbazookas.nuspec << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>waspswithbazookas</id>
+    <version>${{ github.event.release.tag_name }}</version>
+    <title>WaspsWithBazookas</title>
+    <authors>Phara0h</authors>
+    <projectUrl>https://github.com/Phara0h/WaspsWithBazookas</projectUrl>
+    <licenseUrl>https://github.com/Phara0h/WaspsWithBazookas/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/Phara0h/WaspsWithBazookas</projectSourceUrl>
+    <docsUrl>https://github.com/Phara0h/WaspsWithBazookas</docsUrl>
+    <bugTrackerUrl>https://github.com/Phara0h/WaspsWithBazookas/issues</bugTrackerUrl>
+    <tags>waspswithbazookas load-testing http-testing distributed-testing rust</tags>
+    <summary>Distributed HTTP/S load testing tool with cluster-based architecture</summary>
+    <description>
+      WaspsWithBazookas is your ultimate distributed load testing weapon. 
+      Think of it as having an army of angry wasps, each armed with rocket launchers, 
+      ready to absolutely obliterate your servers with HTTP requests.
+    </description>
+    <releaseNotes>https://github.com/Phara0h/WaspsWithBazookas/releases</releaseNotes>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>
+EOF
+          
+          # Update version in nuspec
+          sed -i "s/<version>.*<\/version>/<version>${{ github.event.release.tag_name }}<\/version>/" automatic/waspswithbazookas/waspswithbazookas.nuspec
+          
+          # Update checksum in chocolateyInstall.ps1
+          sed -i "s/\$checksum = '.*'/\$checksum = '${{ steps.sha256.outputs.sha256 }}'/" automatic/waspswithbazookas/tools/chocolateyInstall.ps1
+          
+          # Update URL in chocolateyInstall.ps1
+          sed -i "s|https://github.com/Phara0h/WaspsWithBazookas/releases/download/.*/waspswithbazookas-windows-x86_64.tar.gz|https://github.com/Phara0h/WaspsWithBazookas/releases/download/${{ github.event.release.tag_name }}/waspswithbazookas-windows-x86_64.tar.gz|" automatic/waspswithbazookas/tools/chocolateyInstall.ps1
+      
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          repository: chocolatey-community/chocolatey-packages
+          token: ${{ secrets.CHOCOLATEY_API_KEY }}
+          path: chocolatey-packages
+          commit-message: "Update waspswithbazookas to ${{ github.event.release.tag_name }}"
+          title: "Update waspswithbazookas to ${{ github.event.release.tag_name }}"
+          body: |
+            Updates waspswithbazookas to version ${{ github.event.release.tag_name }}
+            
+            - Updated version number
+            - Updated download URL
+            - Updated SHA256 checksum
+            - Added proper Chocolatey package structure
+            
+            Created by GitHub Actions workflow
+          branch: update-waspswithbazookas-${{ github.event.release.tag_name }}
+          delete-branch: true 
