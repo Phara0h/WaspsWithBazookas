@@ -104,16 +104,9 @@ jobs:
         with:
           formula-name: waspswithbazookas
           homebrew-tap: Homebrew/homebrew-core
-          download-url: https://github.com/Phara0h/WaspsWithBazookas/archive/refs/tags/${{ github.event.release.tag_name }}.tar.gz
+          download-url: https://github.com/Phara0h/WaspsWithBazookas/archive/refs/tags/${{ github.ref_name }}.tar.gz
           commit-message: |
-            waspswithbazookas ${{ github.event.release.tag_name }}
-
-            - Build from source instead of using cargo install
-            - Supports distributed HTTP/S load testing
-            - Includes hive, wasp, and test-dummy binaries
-            - Rust-powered performance with memory safety
-
-            Created by https://github.com/mislav/bump-homebrew-formula-action
+            waspswithbazookas ${{ github.ref_name }}
         env:
           COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
       

@@ -9,12 +9,7 @@ class Waspswithbazookas < Formula
 
   def install
     # Build all binaries from source
-    system "cargo", "build", "--release", "--bin", "hive", "--bin", "wasp", "--bin", "test-dummy"
-    
-    # Install the binaries
-    bin.install "target/release/hive"
-    bin.install "target/release/wasp"
-    bin.install "target/release/test-dummy"
+    system "cargo", "install", *std_cargo_args
   end
 
   test do
