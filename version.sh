@@ -193,6 +193,26 @@ generate_changelog() {
     print_status "Generating changelog..."
     
     if command_exists auto-changelog; then
+        # Create a temporary package.json for auto-changelog if it doesn't exist
+        if [ ! -f "package.json" ]; then
+            print_status "Creating temporary package.json for auto-changelog..."
+            cat > package.json << EOF
+{
+  "name": "waspswithbazookas",
+  "version": "$(get_current_version)",
+  "description": "Distributed load testing tool - like bees with machine guns, but way more power!",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Phara0h/WaspsWithBazookas.git"
+  },
+  "license": "GPL-2.0"
+}
+EOF
+            local temp_package_json=true
+        else
+            local temp_package_json=false
+        fi
+        
         if [ -f "changelog-template.hbs" ]; then
             auto-changelog -l false --sort-commits date-desc --package --hide-credit --template changelog-template.hbs -p
             print_success "Changelog generated: CHANGELOG.md"
@@ -200,6 +220,12 @@ generate_changelog() {
             print_warning "changelog-template.hbs not found, using default template"
             auto-changelog -l false --sort-commits date-desc --package --hide-credit -p
             print_success "Changelog generated: CHANGELOG.md"
+        fi
+        
+        # Clean up temporary package.json if we created it
+        if [ "$temp_package_json" = true ]; then
+            rm -f package.json
+            print_status "Cleaned up temporary package.json"
         fi
     else
         print_warning "auto-changelog not found, skipping changelog generation"

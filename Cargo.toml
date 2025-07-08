@@ -1,6 +1,6 @@
 [package]
 name = "wasps-with-bazookas"
-version = "1.3.0"
+version = "2.0.0"
 edition = "2021"
 authors = ["Phara0h <your-email@example.com>"]
 description = "Distributed load testing tool - like bees with machine guns, but way more power!"

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>waspswithbazookas</id>
-    <version>2.0.1</version>
+    <version>2.0.0</version>
     <title>WaspsWithBazookas</title>
     <authors>Phara0h</authors>
     <projectUrl>https://github.com/Phara0h/WaspsWithBazookas</projectUrl>

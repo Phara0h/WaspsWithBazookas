@@ -1,7 +1,7 @@
 class Waspswithbazookas < Formula
   desc "Distributed load testing tool - like bees with machine guns, but way more power!"
   homepage "https://github.com/Phara0h/WaspsWithBazookas"
-  version "2.0.1"
+  version "2.0.0"
   license "GPL-2.0"
   
   on_macos do
