@@ -41,17 +41,14 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          # Use cross for cross-compilation targets, cargo for native targets
+          # Use Docker for ARM64 cross-compilation, cargo for native targets
           if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
-            # Install cross for ARM64 cross-compilation
-            cargo install cross --git https://github.com/cross-rs/cross
-            
-            # Install ARM64 toolchain
-            sudo apt-get update
-            sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-            
-            # Use cross for ARM64 compilation (handles OpenSSL automatically)
-            cross build --release --target ${{ matrix.target }}
+            # Use Docker for ARM64 cross-compilation
+            docker run --rm -v "$PWD":/project -w /project \
+              -e CARGO_HOME=/project/.cargo \
+              -e CARGO_TARGET_DIR=/project/target \
+              ghcr.io/cross-rs/aarch64-unknown-linux-gnu:main \
+              cargo build --release --target aarch64-unknown-linux-gnu
           else
             # Native compilation for other targets
             cargo build --release --target ${{ matrix.target }}
