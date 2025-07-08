@@ -77,7 +77,7 @@ jobs:
   homebrew:
     needs: release
     runs-on: ubuntu-latest
-    if: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
+    if: ${{ secrets.HOMEBREW_TAP_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
