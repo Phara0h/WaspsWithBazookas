@@ -38,21 +38,15 @@ jobs:
           target: ${{ matrix.target }}
           override: true
       
-      - name: Install cross-compilation dependencies
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
+      - name: Install cross-compilation tool
         run: |
-          # Install cross-compilation tool
+          # Install cross for all targets
           cargo install cross --git https://github.com/cross-rs/cross
       
       - name: Build
         run: |
-          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
-            # Use cross for ARM64 compilation
-            cross build --release --target ${{ matrix.target }}
-          else
-            # Use regular cargo for native compilation
-            cargo build --release --target ${{ matrix.target }}
-          fi
+          # Use cross for all targets - it handles native and cross-compilation automatically
+          cross build --release --target ${{ matrix.target }}
           
           mkdir -p dist
           cp target/${{ matrix.target }}/release/hive dist/hive
