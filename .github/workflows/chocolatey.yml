@@ -55,9 +55,9 @@ jobs:
           cd chocolatey-packages
           
           # Download the package template or create one
-          if [ ! -f "automatic/waspswithbazookas/waspswithbazookas.nuspec" ]; then
-            mkdir -p automatic/waspswithbazookas
-            cat > automatic/waspswithbazookas/waspswithbazookas.nuspec << 'EOF'
+          if (!(Test-Path "automatic/waspswithbazookas/waspswithbazookas.nuspec")) {
+            New-Item -ItemType Directory -Path "automatic/waspswithbazookas" -Force | Out-Null
+            @"
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
@@ -84,15 +84,15 @@ jobs:
     <file src="tools\**" target="tools" />
   </files>
 </package>
-EOF
-          fi
+"@ | Out-File -FilePath "automatic/waspswithbazookas/waspswithbazookas.nuspec" -Encoding UTF8
+          }
           
           # Update the version in the nuspec file
-          sed -i "s/<version>.*<\/version>/<version>${{ github.event.release.tag_name }}<\/version>/" automatic/waspswithbazookas/waspswithbazookas.nuspec
+          (Get-Content "automatic/waspswithbazookas/waspswithbazookas.nuspec") -replace '<version>.*</version>', "<version>${{ github.event.release.tag_name }}</version>" | Set-Content "automatic/waspswithbazookas/waspswithbazookas.nuspec"
           
           # Create the tools directory and chocolateyInstall.ps1
-          mkdir -p automatic/waspswithbazookas/tools
-          cat > automatic/waspswithbazookas/tools/chocolateyInstall.ps1 << 'EOF'
+          New-Item -ItemType Directory -Path "automatic/waspswithbazookas/tools" -Force | Out-Null
+          @"
 $ErrorActionPreference = 'Stop'
 
 $packageName = 'waspswithbazookas'
@@ -127,10 +127,10 @@ Copy-Item -Path "$tempDir\test-dummy.exe" -Destination $binDir -Force
 
 # Create shims
 Install-ChocolateyPath -PathToInstall $binDir -PathType Machine
-EOF
+"@ | Out-File -FilePath "automatic/waspswithbazookas/tools/chocolateyInstall.ps1" -Encoding UTF8
           
           # Create chocolateyUninstall.ps1
-          cat > automatic/waspswithbazookas/tools/chocolateyUninstall.ps1 << 'EOF'
+          @"
 $ErrorActionPreference = 'Stop'
 
 $toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
@@ -142,10 +142,10 @@ if (Test-Path $binDir) {
 }
 
 # Remove from PATH (Chocolatey handles this automatically)
-EOF
+"@ | Out-File -FilePath "automatic/waspswithbazookas/tools/chocolateyUninstall.ps1" -Encoding UTF8
           
           # Create .nuspec file for the package
-          cat > automatic/waspswithbazookas/waspswithbazookas.nuspec << 'EOF'
+          @"
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
@@ -172,16 +172,16 @@ EOF
     <file src="tools\**" target="tools" />
   </files>
 </package>
-EOF
+"@ | Out-File -FilePath "automatic/waspswithbazookas/waspswithbazookas.nuspec" -Encoding UTF8
           
           # Update version in nuspec
-          sed -i "s/<version>.*<\/version>/<version>$VERSION<\/version>/" automatic/waspswithbazookas/waspswithbazookas.nuspec
+          (Get-Content "automatic/waspswithbazookas/waspswithbazookas.nuspec") -replace '<version>.*</version>', "<version>$VERSION</version>" | Set-Content "automatic/waspswithbazookas/waspswithbazookas.nuspec"
           
           # Update checksum in chocolateyInstall.ps1
-          sed -i "s/\$checksum = '.*'/\$checksum = '${{ steps.sha256.outputs.sha256 }}'/" automatic/waspswithbazookas/tools/chocolateyInstall.ps1
+          (Get-Content "automatic/waspswithbazookas/tools/chocolateyInstall.ps1") -replace '\$checksum = ''.*''', "`$checksum = '${{ steps.sha256.outputs.sha256 }}'" | Set-Content "automatic/waspswithbazookas/tools/chocolateyInstall.ps1"
           
           # Update URL in chocolateyInstall.ps1
-          sed -i "s|https://github.com/Phara0h/WaspsWithBazookas/releases/download/.*/waspswithbazookas-windows-x86_64.tar.gz|https://github.com/Phara0h/WaspsWithBazookas/releases/download/$VERSION/waspswithbazookas-windows-x86_64.tar.gz|" automatic/waspswithbazookas/tools/chocolateyInstall.ps1
+          (Get-Content "automatic/waspswithbazookas/tools/chocolateyInstall.ps1") -replace 'https://github.com/Phara0h/WaspsWithBazookas/releases/download/.*/waspswithbazookas-windows-x86_64.tar.gz', "https://github.com/Phara0h/WaspsWithBazookas/releases/download/$VERSION/waspswithbazookas-windows-x86_64.tar.gz" | Set-Content "automatic/waspswithbazookas/tools/chocolateyInstall.ps1"
       
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
