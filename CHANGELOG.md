@@ -2,7 +2,17 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
-#### [v2.0.0](https://github.com/Phara0h/WaspsWithBazookas/compare/v1.3.0...v2.0.0)
+#### [v2.0.0](https://github.com/Phara0h/WaspsWithBazookas/compare/v2.0.1...v2.0.0)
+
+#### [v2.0.1](https://github.com/Phara0h/WaspsWithBazookas/compare/v2.0.0...v2.0.1)
+
+> 8 July 2025
+
+- chore: bump version to 2.0.1 (patch) [`41f1c09`](https://github.com/Phara0h/WaspsWithBazookas/commit/41f1c09e1a95c2aa761b3d56ee66b0a56caa3b4e)
+
+### [v2.0.0](https://github.com/Phara0h/WaspsWithBazookas/compare/v1.3.0...v2.0.0)
+
+> 8 July 2025
 
 - Bump handlebars from 4.7.6 to 4.7.7 [`#6`](https://github.com/Phara0h/WaspsWithBazookas/pull/6)
 - Bump fastify-static from 2.5.0 to 4.2.4 [`#7`](https://github.com/Phara0h/WaspsWithBazookas/pull/7)
@@ -13,6 +23,7 @@ All notable changes to this project will be documented in this file. Dates are d
 - Bump find-my-way from 2.2.3 to 2.2.5 [`#5`](https://github.com/Phara0h/WaspsWithBazookas/pull/5)
 - Bump node-fetch from 2.6.0 to 2.6.1 [`#4`](https://github.com/Phara0h/WaspsWithBazookas/pull/4)
 - Bump fastify from 2.4.1 to 2.15.1 [`#3`](https://github.com/Phara0h/WaspsWithBazookas/pull/3)
+- chore: bump version to 2.0.0 (major) [`efc07ae`](https://github.com/Phara0h/WaspsWithBazookas/commit/efc07ae513bd517fc3f64ef274ece5fbe7f034ac)
 - Created test dummy service, docs, workflows, and much more [`d1830b5`](https://github.com/Phara0h/WaspsWithBazookas/commit/d1830b5fd3e62aa6c918b81c5a348aedeaa62a7f)
 - Init commit for full rewrite in rust + no more wrk depend [`82b21d7`](https://github.com/Phara0h/WaspsWithBazookas/commit/82b21d7bd5789c94884178ac8385e093ddf67497)
 

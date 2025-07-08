@@ -214,11 +214,11 @@ EOF
         fi
         
         if [ -f "changelog-template.hbs" ]; then
-            auto-changelog -l false --sort-commits date-desc --package --hide-credit --template changelog-template.hbs -p
+            auto-changelog -l false --sort-commits date-desc --package --hide-credit --template changelog-template.hbs -p --commit-limit false
             print_success "Changelog generated: CHANGELOG.md"
         else
             print_warning "changelog-template.hbs not found, using default template"
-            auto-changelog -l false --sort-commits date-desc --package --hide-credit -p
+            auto-changelog -l false --sort-commits date-desc --package --hide-credit -p --commit-limit false
             print_success "Changelog generated: CHANGELOG.md"
         fi
         
