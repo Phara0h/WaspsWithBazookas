@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. Dates are d
 
 #### [v2.0.0](https://github.com/Phara0h/WaspsWithBazookas/compare/v2.0.1...v2.0.0)
 
+- Fix autochange log [`2b33b55`](https://github.com/Phara0h/WaspsWithBazookas/commit/2b33b55df4079d7819b29c19671d15ddb9a3bd5e)
+
 #### [v2.0.1](https://github.com/Phara0h/WaspsWithBazookas/compare/v2.0.0...v2.0.1)
 
 > 8 July 2025

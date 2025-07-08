@@ -236,18 +236,20 @@ EOF
 squash_markdown() {
     print_status "Squashing markdown files..."
     
-    if command_exists mdsquash; then
-        local intro_file="docs/INTRO.md"
-        local changelog="CHANGELOG.md"
-        local output="README.md"
-        
-        # Create input files list
-        local input_files="$changelog"
-        
-        mdsquash -t "$intro_file" -i "$input_files" -o "$output"
+    local intro_file="docs/INTRO.md"
+    local changelog="CHANGELOG.md"
+    local output="README.md"
+    
+    # Simple approach: copy intro file and append changelog
+    if [ -f "$intro_file" ] && [ -f "$changelog" ]; then
+        cp "$intro_file" "$output"
+        echo "" >> "$output"
+        echo "---" >> "$output"
+        echo "" >> "$output"
+        cat "$changelog" >> "$output"
         print_success "Markdown files squashed: $output"
     else
-        print_warning "mdsquash not found, skipping markdown squashing"
+        print_warning "Missing required files: $intro_file or $changelog"
     fi
 }
 

@@ -149,7 +149,3 @@ Found a bug? Want to add features? We'd love your help! Check out our [Contribut
 This project is licensed under the GNU General Public License v2.0 - see the [LICENSE](../LICENSE) file for details.
 
 ---
-
-
-{{doc1}}
-
