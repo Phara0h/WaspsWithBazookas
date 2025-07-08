@@ -38,16 +38,29 @@ jobs:
           target: ${{ matrix.target }}
           override: true
       
-      - name: Install cross-compilation tool
-        run: |
-          # Install cross for all targets
-          cargo install cross --git https://github.com/cross-rs/cross
-      
       - name: Build
         run: |
           # Use cross for cross-compilation targets, cargo for native targets
           if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
-            # Cross-compilation for ARM64 Linux
+            # Install cross for ARM64 cross-compilation
+            cargo install cross --git https://github.com/cross-rs/cross
+            
+            # Set up environment for ARM64 cross-compilation
+            export PKG_CONFIG_PATH="/usr/lib/aarch64-linux-gnu/pkgconfig:/usr/share/pkgconfig"
+            export PKG_CONFIG_SYSROOT_DIR="/usr/aarch64-linux-gnu"
+            export CC_aarch64_unknown_linux_gnu="aarch64-linux-gnu-gcc"
+            export CXX_aarch64_unknown_linux_gnu="aarch64-linux-gnu-g++"
+            export AR_aarch64_unknown_linux_gnu="aarch64-linux-gnu-ar"
+            export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER="aarch64-linux-gnu-gcc"
+            
+            # Install ARM64 OpenSSL development libraries
+            sudo apt-get update
+            sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+            sudo dpkg --add-architecture arm64
+            sudo apt-get update
+            sudo apt-get install -y libssl-dev:arm64
+            
+            # Use cross for ARM64 compilation
             cross build --release --target ${{ matrix.target }}
           else
             # Native compilation for other targets
