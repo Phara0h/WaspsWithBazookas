@@ -9,10 +9,28 @@ use std::time::{Duration, Instant};
 use mio::net::TcpStream;
 use mio::{Events, Interest, Poll, Token};
 use mio::event::Source;
+#[cfg(unix)]
 use nix::sys::socket::{setsockopt, sockopt::TcpNoDelay};
 use rustls::{ClientConfig, ClientConnection, ServerName};
 
 use rustls::client::{ServerCertVerified, ServerCertVerifier};
+
+// Helper function to set TCP_NODELAY that works on both Unix and Windows
+fn set_tcp_nodelay(stream: &TcpStream) -> io::Result<()> {
+    #[cfg(unix)]
+    {
+        setsockopt(stream, TcpNoDelay, &true)
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Failed to set TCP_NODELAY: {}", e)))?;
+    }
+    
+    #[cfg(windows)]
+    {
+        // On Windows, use the standard library's set_nodelay method
+        stream.set_nodelay(true)?;
+    }
+    
+    Ok(())
+}
 
 #[derive(Debug, Clone)]
 pub struct RequestConfig {
@@ -304,11 +322,7 @@ fn create_connection_stream(addr: SocketAddr, host: &str, is_ht: bool) -> Result
         .map_err(|e| format!("Failed to connect: {}", e))?;
     
     // Set socket options
-    setsockopt(&stream, TcpNoDelay, &true)
-        .map_err(|e| format!("Failed to set TCP_NODELAY: {}", e))?;
-    
-    // Set connection timeout for health check
-    stream.set_nodelay(true)
+    set_tcp_nodelay(&stream)
         .map_err(|e| format!("Failed to set TCP_NODELAY: {}", e))?;
     
     if is_ht {
@@ -522,7 +536,7 @@ fn run_thread(
         };
 
         // Optimize socket settings like wrk does
-        setsockopt(&stream, TcpNoDelay, &true)?;
+        set_tcp_nodelay(&stream)?;
 
         let token = next_token;
         next_token = Token(token.0 + 1);
