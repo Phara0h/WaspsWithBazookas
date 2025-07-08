@@ -2,12 +2,22 @@ name: Update Chocolatey Package
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v2.0.1)'
+        required: true
+        type: string
   release:
-    types: [published]
+    types: [published, created]
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   update-chocolatey:
     runs-on: windows-latest
+    # Prevent duplicate runs
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'release' && github.event.action == 'published') || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -15,13 +25,23 @@ jobs:
       - name: Calculate SHA256
         id: sha256
         run: |
-          $VERSION = $env:GITHUB_REF -replace 'refs/tags/', ''
+          # Handle different trigger types
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $VERSION = "${{ github.event.inputs.version }}"
+          } elseif ("${{ github.event_name }}" -eq "release") {
+            $VERSION = "${{ github.event.release.tag_name }}"
+          } else {
+            $VERSION = $env:GITHUB_REF -replace 'refs/tags/', ''
+          }
+          
+          Write-Host "Using version: $VERSION"
           $URL = "https://github.com/Phara0h/WaspsWithBazookas/releases/download/$VERSION/waspswithbazookas-windows-x86_64.tar.gz"
           
           # Download and calculate SHA256
           Invoke-WebRequest -Uri $URL -OutFile "waspswithbazookas.tar.gz"
           $hash = Get-FileHash -Algorithm SHA256 "waspswithbazookas.tar.gz"
           echo "sha256=$($hash.Hash.ToLower())" >> $env:GITHUB_OUTPUT
+          echo "version=$VERSION" >> $env:GITHUB_OUTPUT
       
       - name: Checkout Chocolatey Packages Repository
         uses: actions/checkout@v4
@@ -155,13 +175,13 @@ EOF
 EOF
           
           # Update version in nuspec
-          sed -i "s/<version>.*<\/version>/<version>${{ github.event.release.tag_name }}<\/version>/" automatic/waspswithbazookas/waspswithbazookas.nuspec
+          sed -i "s/<version>.*<\/version>/<version>$VERSION<\/version>/" automatic/waspswithbazookas/waspswithbazookas.nuspec
           
           # Update checksum in chocolateyInstall.ps1
           sed -i "s/\$checksum = '.*'/\$checksum = '${{ steps.sha256.outputs.sha256 }}'/" automatic/waspswithbazookas/tools/chocolateyInstall.ps1
           
           # Update URL in chocolateyInstall.ps1
-          sed -i "s|https://github.com/Phara0h/WaspsWithBazookas/releases/download/.*/waspswithbazookas-windows-x86_64.tar.gz|https://github.com/Phara0h/WaspsWithBazookas/releases/download/${{ github.event.release.tag_name }}/waspswithbazookas-windows-x86_64.tar.gz|" automatic/waspswithbazookas/tools/chocolateyInstall.ps1
+          sed -i "s|https://github.com/Phara0h/WaspsWithBazookas/releases/download/.*/waspswithbazookas-windows-x86_64.tar.gz|https://github.com/Phara0h/WaspsWithBazookas/releases/download/$VERSION/waspswithbazookas-windows-x86_64.tar.gz|" automatic/waspswithbazookas/tools/chocolateyInstall.ps1
       
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
@@ -169,10 +189,10 @@ EOF
           repository: chocolatey-community/chocolatey-packages
           token: ${{ secrets.CHOCOLATEY_API_KEY }}
           path: chocolatey-packages
-          commit-message: "Update waspswithbazookas to ${{ github.event.release.tag_name }}"
-          title: "Update waspswithbazookas to ${{ github.event.release.tag_name }}"
+          commit-message: "Update waspswithbazookas to ${{ steps.sha256.outputs.version || github.event.release.tag_name || github.ref_name }}"
+          title: "Update waspswithbazookas to ${{ steps.sha256.outputs.version || github.event.release.tag_name || github.ref_name }}"
           body: |
-            Updates waspswithbazookas to version ${{ github.event.release.tag_name }}
+            Updates waspswithbazookas to version ${{ steps.sha256.outputs.version || github.event.release.tag_name || github.ref_name }}
             
             - Updated version number
             - Updated download URL
@@ -180,5 +200,5 @@ EOF
             - Added proper Chocolatey package structure
             
             Created by GitHub Actions workflow
-          branch: update-waspswithbazookas-${{ github.event.release.tag_name }}
+          branch: update-waspswithbazookas-${{ steps.sha256.outputs.version || github.event.release.tag_name || github.ref_name }}
           delete-branch: true 
