@@ -1,5 +1,5 @@
 
- <img src="https://i.imgur.com/e5WUHB2.png" alt="https://www.npmjs.com/package/waspswithbazookas" data-canonical-src="https://i.imgur.com/e5WUHB2.png" width="350" height="350" />
+ <img src="https://i.imgur.com/u6JbkCf.png" alt="https://www.npmjs.com/package/waspswithbazookas" data-canonical-src="https://i.imgur.com/u6JbkCf.png" width="350" height="350" />
 
 # Wasps With Bazookas
 Its like bees with machine guns but way more power

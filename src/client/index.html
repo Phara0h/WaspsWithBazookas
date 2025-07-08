@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hive Server - Wasp Coordination</title>
+    <script>
+        // Dark mode script - runs before body to prevent flash
+        function lget(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+        function lset(key, value) { try { localStorage.setItem(key, value); } catch (e) {} }
+        function prefersDark() { return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches; }
+        function getTheme() { return lget("theme") || (prefersDark() ? "dark" : "light"); }
+        function setTheme(theme) { 
+
+        }
+        function toggleTheme() { setTheme(getTheme() === "dark" ? "light" : "dark"); }
+        setTheme(getTheme());
+    </script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        /* CSS Variables for theming */
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: rgba(255, 255, 255, 0.95);
+            --bg-tertiary: #f7fafc;
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+            --border-color: #e2e8f0;
+            --accent-primary: #667eea;
+            --accent-secondary: #764ba2;
+            --success-color: #48bb78;
+            --error-color: #f56565;
+            --warning-color: #ed8936;
+            --info-color: #4299e1;
+            --shadow-light: rgba(0,0,0,0.1);
+            --shadow-medium: rgba(0,0,0,0.2);
+            --card-bg: #4d3c3c;
+            --accent: #e07a3f;
+            --accent2: #f6c453;
+            --text-primary: #fbeec1;
+            --text-secondary: #e07a3f;
+            --border: #c94a57;
+        }
+        
+        html.dark {
+            --bg-primary: #1a202c;
+            --bg-secondary: rgba(26, 32, 44, 0.95);
+            --bg-tertiary: #2d3748;
+            --text-primary: #f7fafc;
+            --text-secondary: #e2e8f0;
+            --text-muted: #a0aec0;
+            --border-color: #4a5568;
+            --accent-primary: #667eea;
+            --accent-secondary: #764ba2;
+            --success-color: #48bb78;
+            --error-color: #f56565;
+            --warning-color: #ed8936;
+            --info-color: #4299e1;
+            --shadow-light: rgba(0,0,0,0.3);
+            --shadow-medium: rgba(0,0,0,0.5);
+        }
+        
+        /* System preference fallback */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #1a202c;
+                --bg-secondary: rgba(26, 32, 44, 0.95);
+                --bg-tertiary: #2d3748;
+                --text-primary: #f7fafc;
+                --text-secondary: #e2e8f0;
+                --text-muted: #a0aec0;
+                --border-color: #4a5568;
+                --shadow-light: rgba(0,0,0,0.3);
+                --shadow-medium: rgba(0,0,0,0.5);
+            }
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: url('/client/background.png') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            color: var(--text-primary);
+            position: relative;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-overlay);
+            z-index: -1;
+        }
+        
+        .container {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 40px var(--shadow-medium);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--accent-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            position: relative;
+        }
+        
+        .theme-toggle {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 20px;
+        }
+        
+        .theme-toggle:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 4px 12px var(--shadow-light);
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px var(--shadow-light));
+        }
+        
+        .header-text {
+            text-align: left;
+        }
+        
+        .header h1 {
+            color: var(--text-primary);
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin: 0;
+            font-weight: 700;
+            transition: color 0.3s ease;
+        }
+        
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin: 10px 0 0 0;
+            transition: color 0.3s ease;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            background: var(--bg-primary);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px var(--shadow-light);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--shadow-light);
+        }
+        
+        .section h2 {
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            font-weight: 600;
+            transition: color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+        
+        input[type="text"], 
+        input[type="number"], 
+        select, 
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        input[type="text"]:focus, 
+        input[type="number"]:focus, 
+        select:focus, 
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+            color: #3a2c2c;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button.danger {
+            background: linear-gradient(135deg, var(--error-color) 0%, #e53e3e 100%);
+        }
+        
+        button.danger:hover {
+            box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+        }
+        
+        button.secondary {
+            background: linear-gradient(135deg, var(--text-muted) 0%, var(--text-secondary) 100%);
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 500;
+            border-left: 4px solid;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        .status.success {
+            background-color: rgba(72, 187, 120, 0.1);
+            color: var(--success-color);
+            border-left-color: var(--success-color);
+        }
+        
+        .status.error {
+            background-color: rgba(245, 101, 101, 0.1);
+            color: var(--error-color);
+            border-left-color: var(--error-color);
+        }
+        
+        .status.info {
+            background-color: rgba(66, 153, 225, 0.1);
+            color: var(--info-color);
+            border-left-color: var(--info-color);
+        }
+        
+        .status.warning {
+            background-color: rgba(237, 137, 54, 0.1);
+            color: var(--warning-color);
+            border-left-color: var(--warning-color);
+        }
+        
+        .wasp-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        
+        .wasp-card {
+            background: var(--bg-tertiary);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--success-color);
+            transition: all 0.3s ease;
+        }
+        
+        .wasp-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-light);
+        }
+        
+        .wasp-card.offline {
+            border-left-color: var(--error-color);
+            background: rgba(245, 101, 101, 0.1);
+        }
+        
+        .wasp-card h3 {
+            margin: 0 0 10px 0;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+        }
+        
+        .wasp-card p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+        
+        .wasp-card .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .wasp-card .status-indicator.online {
+            background-color: var(--success-color);
+        }
+        
+        .wasp-card .status-indicator.offline {
+            background-color: var(--error-color);
+        }
+        
+        pre {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        .auto-refresh {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .auto-refresh input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--accent-primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-card .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card .label {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .header-text {
+                text-align: center;
+            }
+            
+            .logo {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .theme-toggle {
+                position: static;
+                transform: none;
+                margin-top: 15px;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .section {
+                padding: 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .wasp-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .section {
+                padding: 15px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 32px;
+        }
+        
+        .sidebar {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 30px;
+            width: 350px;
+            max-height: 90vh;
+            box-shadow: 0 8px 32px rgba(102,126,234,0.15);
+            border: 2px solid var(--accent-primary);
+            background: var(--bg-primary);
+            transition: box-shadow 0.2s, background-color 0.3s ease, border-color 0.3s ease;
+            margin-bottom: 30px;
+        }
+        
+        .main {
+            flex: 1 1 0%;
+            min-width: 0;
+        }
+        
+        @media (max-width: 900px) {
+            .wrapper {
+                flex-direction: column;
+            }
+            .sidebar, .main {
+                max-width: 100%;
+                min-width: 0;
+            }
+            .sidebar {
+                position: static;
+                top: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="/client/logo.png" alt="Hive Logo" class="logo">
+            <div class="header-text">
+                <h1>Hive Server</h1>
+            </div>
+    
+        </div>
+
+        <div class="wrapper">
+            <aside class="sidebar">
+                <div class="section">
+                    <h2>📊 Status</h2>
+                    <div class="auto-refresh">
+                        <input type="checkbox" id="auto-refresh" checked>
+                        <label for="auto-refresh">Auto-refresh every 5 seconds</label>
+                    </div>
+                    <div id="status-display">
+                        <div class="loading"></div> Loading status...
+                    </div>
+                    <div class="button-group">
+                        <button onclick="checkStatus()">🔄 Refresh Status</button>
+                        <button onclick="checkDone()" class="secondary">✅ Check Done</button>
+                    </div>
+                </div>
+            </aside>
+            <main class="main">
+                <div class="grid">
+                    <div class="section">
+                        <h2>🐝 Wasp Management</h2>
+                        <div class="button-group">
+                            <button onclick="listWasps()">📋 List Wasps</button>
+                            <button onclick="boopSnoots()">👆 Boop Snoots</button>
+                            <button onclick="spawnLocalWasps()">🚀 Spawn Local Wasps</button>
+                        </div>
+                        <div id="wasp-list"></div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>🎯 Launch Attack</h2>
+                    <form id="attack-form">
+                        <div class="grid">
+                            <div class="form-group">
+                                <label for="target">Target URL:</label>
+                                <input type="text" id="target" name="target" placeholder="http://example.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="method">HTTP Method:</label>
+                                <select id="method" name="method">
+                                    <option value="GET">GET</option>
+                                    <option value="POST">POST</option>
+                                    <option value="PUT">PUT</option>
+                                    <option value="DELETE">DELETE</option>
+                                    <option value="PATCH">PATCH</option>
+                                    <option value="HEAD">HEAD</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="grid">
+                            <div class="form-group">
+                                <label for="threads">Threads:</label>
+                                <input type="number" id="threads" name="threads" value="10" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="connections">Connections:</label>
+                                <input type="number" id="connections" name="connections" value="50" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="duration">Duration (seconds):</label>
+                                <input type="number" id="duration" name="duration" value="30" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="timeout">Timeout (seconds):</label>
+                                <input type="number" id="timeout" name="timeout" value="2" min="1">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="headers">Headers (JSON):</label>
+                            <textarea id="headers" name="headers" placeholder='{"Content-Type": "application/json", "Authorization": "Bearer token"}'></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="body">Request Body:</label>
+                            <textarea id="body" name="body" placeholder="Request body content"></textarea>
+                        </div>
+                        
+                        <div class="button-group">
+                            <button type="button" onclick="launchAttack()">🚀 Launch Attack</button>
+                            <button type="button" onclick="ceasefire()" class="danger">🛑 Ceasefire</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="section">
+                    <h2>📈 Reports</h2>
+                    <div class="button-group">
+                        <button onclick="getReport()">📊 Get Report</button>
+                        <button onclick="getReportStats()" class="secondary">📈 Quick Stats</button>
+                    </div>
+                    <div id="report-display"></div>
+                </div>
+
+                <div class="section">
+                    <h2>💀 Destruction</h2>
+                    <div class="button-group">
+                        <button onclick="torchAll()" class="danger">🔥 Torch All Wasps</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+        let autoRefreshInterval = null;
+        let isRunning = false;
+        let wasRunning = false;
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status-display');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function showReport(data) {
+            const reportDiv = document.getElementById('report-display');
+            if (typeof data === 'object') {
+                // Create a more readable report display
+                let html = '<div class="stats-grid">';
+                
+                if (data.total_rps !== undefined) {
+                    html += `
+                        <div class="stat-card">
+                            <div class="value">${data.total_rps.toFixed(2)}</div>
+                            <div class="label">Total RPS</div>
+                        </div>
+                    `;
+                }
+                
+                if (data.total_requests !== undefined) {
+                    html += `
+                        <div class="stat-card">
+                            <div class="value">${data.total_requests.toLocaleString()}</div>
+                            <div class="label">Total Requests</div>
+                        </div>
+                    `;
+                }
+                
+                if (data.status && data.status.completed !== undefined) {
+                    html += `
+                        <div class="stat-card">
+                            <div class="value">${data.status.completed}</div>
+                            <div class="label">Completed</div>
+                        </div>
+                    `;
+                }
+                
+                if (data.status && data.status.failed !== undefined) {
+                    html += `
+                        <div class="stat-card">
+                            <div class="value">${data.status.failed}</div>
+                            <div class="label">Failed</div>
+                        </div>
+                    `;
+                }
+                
+                html += '</div>';
+                html += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                reportDiv.innerHTML = html;
+            } else {
+                reportDiv.innerHTML = `<pre>${data}</pre>`;
+            }
+        }
+
+        async function makeRequest(url, options = {}) {
+            try {
+                console.log(`Making request to: ${url}`);
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                console.log(`Response status: ${response.status}`);
+                
+                if (response.ok) {
+                    const text = await response.text();
+                    console.log(`Response text: ${text.substring(0, 200)}...`);
+                    try {
+                        return JSON.parse(text);
+                    } catch {
+                        return text;
+                    }
+                } else {
+                    const errorText = await response.text();
+                    console.error(`HTTP Error ${response.status}: ${errorText}`);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+            } catch (error) {
+                console.error(`Request error: ${error.message}`);
+                throw error;
+            }
+        }
+
+        async function checkStatus() {
+            try {
+                const status = await makeRequest(`${API_BASE}/hive/status`);
+                // If status is a string, show as before
+                if (typeof status === 'string') {
+                    isRunning = false;
+                    showStatus(status, 'success');
+                } else if (typeof status === 'object' && status.running) {
+                    // Show progress bar
+                    isRunning = true;
+                    let percent = 0;
+                    if (typeof status.percent === 'string' && status.percent.endsWith('%')) {
+                        percent = parseInt(status.percent);
+                    } else if (typeof status.percent === 'number') {
+                        percent = status.percent;
+                    }
+                    const eta = status.eta || '';
+                    const target = status.running.target || '';
+                    showStatus(`
+                        <div style="margin-bottom:8px;"><b>Benchmark in progress…</b></div>
+                        <div style="margin-bottom:8px;">Target: <code>${target}</code></div>
+                        <div style="background:#e2e8f0;border-radius:6px;overflow:hidden;height:22px;margin-bottom:8px;">
+                            <div style="background:linear-gradient(90deg,#667eea,#764ba2);height:100%;width:${percent}%;transition:width 0.5s;"></div>
+                        </div>
+                        <div style="font-size:0.95em;">Progress: <b>${percent}%</b> &nbsp; | &nbsp; ETA: <b>${eta}</b></div>
+                    `, 'info');
+                } else {
+                    isRunning = false;
+                    showStatus('Unknown status format', 'error');
+                }
+                // Auto-fetch report if we just finished running
+                if (wasRunning && !isRunning) {
+                    getReport();
+                }
+                wasRunning = isRunning;
+            } catch (error) {
+                // Try to parse error.message for running/progress info (legacy backend fallback)
+                try {
+                    const match = error.message.match(/\{.*\}/);
+                    if (match) {
+                        const obj = JSON.parse(match[0]);
+                        if (obj.running) {
+                            // Show progress bar as before
+                            let percent = 0;
+                            if (typeof obj.percent === 'string' && obj.percent.endsWith('%')) {
+                                percent = parseInt(obj.percent);
+                            } else if (typeof obj.percent === 'number') {
+                                percent = obj.percent;
+                            }
+                            const eta = obj.eta || '';
+                            const target = obj.running.target || '';
+                            showStatus(`
+                                <div style="margin-bottom:8px;"><b>Benchmark in progress…</b></div>
+                                <div style="margin-bottom:8px;">Target: <code>${target}</code></div>
+                                <div style="background:#e2e8f0;border-radius:6px;overflow:hidden;height:22px;margin-bottom:8px;">
+                                    <div style="background:linear-gradient(90deg,#667eea,#764ba2);height:100%;width:${percent}%;transition:width 0.5s;"></div>
+                                </div>
+                                <div style="font-size:0.95em;">Progress: <b>${percent}%</b> &nbsp; | &nbsp; ETA: <b>${eta}</b></div>
+                            `, 'info');
+                            return;
+                        }
+                    }
+                } catch {}
+                showStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkDone() {
+            try {
+                const done = await makeRequest(`${API_BASE}/hive/status/done`);
+                showStatus(`Done status: ${done}`, 'info');
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function listWasps() {
+            try {
+                console.log('Fetching wasp list...');
+                const wasps = await makeRequest(`${API_BASE}/wasp/list`);
+                console.log('Wasp list response:', wasps);
+                
+                const waspListDiv = document.getElementById('wasp-list');
+                
+                if (!Array.isArray(wasps) || wasps.length === 0) {
+                    waspListDiv.innerHTML = '<p>No wasps registered. Try spawning some local wasps or check if wasps are running.</p>';
+                    return;
+                }
+
+                const waspCards = wasps.map(wasp => {
+                    const isOnline = (Date.now() - wasp.last_heartbeat * 1000) < 15000;
+                    return `
+                        <div class="wasp-card ${isOnline ? '' : 'offline'}">
+                            <h3>${wasp.id}</h3>
+                            <p><strong>IP:</strong> ${wasp.ip}:${wasp.port}</p>
+                            <p><strong>Last Heartbeat:</strong> ${new Date(wasp.last_heartbeat * 1000).toLocaleString()}</p>
+                            <p><strong>Status:</strong> <span class="status-indicator ${isOnline ? 'online' : 'offline'}"></span>${isOnline ? 'Online' : 'Offline'}</p>
+                        </div>
+                    `;
+                }).join('');
+
+                waspListDiv.innerHTML = `<div class="wasp-list">${waspCards}</div>`;
+                console.log(`Displayed ${wasps.length} wasps`);
+            } catch (error) {
+                console.error('Error listing wasps:', error);
+                const waspListDiv = document.getElementById('wasp-list');
+                waspListDiv.innerHTML = `<p class="status error">Error loading wasps: ${error.message}</p>`;
+            }
+        }
+
+        async function boopSnoots() {
+            try {
+                const result = await makeRequest(`${API_BASE}/wasp/boop/snoots`);
+                showStatus(result, 'success');
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function spawnLocalWasps() {
+            const amount = prompt('How many local wasps to spawn?', '3');
+            if (!amount) return;
+            
+            try {
+                const result = await makeRequest(`${API_BASE}/hive/spawn/local/${amount}`);
+                showStatus(result, 'success');
+                // Refresh wasp list after spawning
+                setTimeout(listWasps, 1000);
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        function isValidHttpUrl(string) {
+            let url;
+            try {
+                url = new URL(string);
+            } catch (_) {
+                return false;
+            }
+            return url.protocol === "http:" || url.protocol === "https:";
+        }
+
+        async function launchAttack() {
+            const form = document.getElementById('attack-form');
+            const formData = new FormData(form);
+            const target = formData.get('target');
+            if (!isValidHttpUrl(target)) {
+                showStatus('Error: Please enter a valid target URL (must start with http:// or https://)', 'error');
+                return;
+            }
+
+            // Parse headers if provided
+            let headers = null;
+            const headersText = formData.get('headers');
+            if (headersText && headersText.trim()) {
+                try {
+                    headers = JSON.parse(headersText);
+                } catch (e) {
+                    showStatus(`Error: Invalid headers JSON: ${e.message}`, 'error');
+                    return;
+                }
+            }
+
+            const attackData = {
+                target: target,
+                t: parseInt(formData.get('threads')),
+                c: parseInt(formData.get('connections')),
+                d: parseInt(formData.get('duration')),
+                timeout: parseInt(formData.get('timeout')),
+                method: formData.get('method') || 'GET',
+                headers: headers,
+                body: formData.get('body') || null
+            };
+
+            try {
+                const result = await makeRequest(`${API_BASE}/hive/poke`, {
+                    method: 'PUT',
+                    body: JSON.stringify(attackData)
+                });
+                showStatus(result, 'success');
+                isRunning = true;
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function ceasefire() {
+            try {
+                const result = await makeRequest(`${API_BASE}/hive/ceasefire`);
+                showStatus(result, 'success');
+                isRunning = false;
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getReport() {
+            try {
+                const report = await makeRequest(`${API_BASE}/hive/status/report`);
+                showReport(report);
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getReportStats() {
+            try {
+                const report = await makeRequest(`${API_BASE}/hive/status/report`);
+                if (typeof report === 'object') {
+                    const stats = {
+                        total_rps: report.total_rps,
+                        total_requests: report.total_requests,
+                        completed: report.status?.completed,
+                        failed: report.status?.failed
+                    };
+                    showReport(stats);
+                } else {
+                    showReport(report);
+                }
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function torchLocal() {
+            if (!confirm('Are you sure you want to kill all local wasps?')) return;
+            
+            try {
+                const result = await makeRequest(`${API_BASE}/hive/torch/local`, {
+                    method: 'DELETE'
+                });
+                showStatus(result, 'success');
+                setTimeout(listWasps, 1000);
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function torchAll() {
+            if (!confirm('Are you sure you want to kill ALL wasps?')) return;
+            
+            try {
+                const result = await makeRequest(`${API_BASE}/hive/torch`, {
+                    method: 'DELETE'
+                });
+                showStatus(result, 'success');
+                setTimeout(listWasps, 1000);
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        function startAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            autoRefreshInterval = setInterval(() => {
+                checkStatus();
+                listWasps(); // Always list wasps on auto-refresh
+            }, 5000);
+        }
+
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            checkStatus();
+            listWasps();
+            startAutoRefresh();
+            
+            // Handle auto-refresh checkbox
+            const autoRefreshCheckbox = document.getElementById('auto-refresh');
+            autoRefreshCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    startAutoRefresh();
+                } else {
+                    stopAutoRefresh();
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
