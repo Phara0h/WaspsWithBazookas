@@ -1,0 +1,14 @@
+target/
+.git/
+.gitignore
+README.md
+docs/
+*.md
+.github/
+Formula/
+chocolatey/
+install.sh
+install.ps1
+docker-compose.yml
+Dockerfile
+.dockerignore 

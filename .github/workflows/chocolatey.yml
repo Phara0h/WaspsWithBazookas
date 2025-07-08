@@ -1,0 +1,35 @@
+name: Update Chocolatey Package
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-chocolatey:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Calculate SHA256
+        id: sha256
+        run: |
+          $VERSION = $env:GITHUB_REF -replace 'refs/tags/', ''
+          $URL = "https://github.com/Phara0h/WaspsWithBazookas/releases/download/$VERSION/waspswithbazookas-windows-x86_64.tar.gz"
+          
+          # Download and calculate SHA256
+          Invoke-WebRequest -Uri $URL -OutFile "waspswithbazookas.tar.gz"
+          $hash = Get-FileHash -Algorithm SHA256 "waspswithbazookas.tar.gz"
+          echo "sha256=$($hash.Hash.ToLower())" >> $env:GITHUB_OUTPUT
+      
+      - name: Update Chocolatey Package
+        uses: chocolatey/chocolatey-package-actions@v1
+        with:
+          package-id: waspswithbazookas
+          package-version: ${{ github.event.release.tag_name }}
+          package-url: https://github.com/Phara0h/WaspsWithBazookas/releases/download/${{ github.event.release.tag_name }}/waspswithbazookas-windows-x86_64.tar.gz
+          package-checksum: ${{ steps.sha256.outputs.sha256 }}
+          package-checksum-type: sha256
+          push-to-repository: true
+        env:
+          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }} 

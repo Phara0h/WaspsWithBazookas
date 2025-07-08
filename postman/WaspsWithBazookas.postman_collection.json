@@ -1,0 +1,1093 @@
+{
+	"info": {
+		"_postman_id": "6a1739a5-9a0a-4a01-953b-4b4d515c8a65",
+		"name": "WaspsWithBazookas",
+		"description": "\n <img src=\"https://i.imgur.com/e5WUHB2.png\" alt=\"https://www.npmjs.com/package/waspswithbazookas\" data-canonical-src=\"https://i.imgur.com/e5WUHB2.png\" width=\"350\" height=\"350\" />\n\n# Wasps With Bazookas\nIts like bees with machine guns but way more power\n\nDo not use this to DDOS for the lulz or any other purpose on servers you don't own, it is illegal . Don't say I did not tell you so.\n\nPostman REST Docs\n[Postman REST Docs](https://documenter.getpostman.com/view/208035/S1a1YnXU?version=latest)\nYou can also check out the docs/API.md file (but it might be out of date)\n\n# Install\ninstall wrk and have the bin in your path.\n\n```javascript\nnpm install -g waspswithbazookas\n```\n\n# How to run\n\nOn your choice of platform for example AWS. You would have one instance running the hive and x amount of other instances running wasps.\n\n## wwb-cli\n\n### Start\nstarts hive and 2 wasp servers on the local machine.\n```javascript\nwwb-cli spawn local start -w 2\n```\n### Run load test\nRuns a load test with the defaults hitting localhost:1234 (This test server can be found under test/test-http-server.js)\n```javascript\nwwb-cli hive poke http://localhost:1234/\n```\n### Get report\nGets report of the load test after it is finished.\n```javascript\nwwb-cli hive report\n```\n### Stop\nStops all locally made machines\n```javascript\nwwb-cli spawn local stop\n```\n\n## Manual\n\n### Start HIVE\n**Note: Must start HIVE first**\n\n```javascript\nwwb-hive 4269\n```\nFirst argument is port number (optional) **Default: 4269**\nYou can also set it by setting your env with ``WWB_HIVE_PORT``\n\n### Start WASP\n```javascript\nwwb-wasp http://hiveip:hiveport/ 4268\n```\nFirst argument is hive url (EX. http://localhost:4269/)\nYou can also set it by setting your env with ``WWB_HIVE_URL``\n\nSecond argument is port number (optional) **Default: 4268**\nYou can also set it by setting your env with ``WWB_WASP_PORT``\n\n\n# Sample config file for remote control\n\n```javascript\n{\n  \"instance\": {\n    \"type\": \"remote\",\n    \"hive\": {\n      \"ip\": \"0.0.0.0\",\n      \"port\": \"4269\"\n    }\n  }\n}\n```\n",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "208035",
+		"_collection_link": "https://dragohm.postman.co/workspace/Dragohm~d556b321-0645-45a3-861e-78b69a981feb/collection/208035-6a1739a5-9a0a-4a01-953b-4b4d515c8a65?action=share&source=collection_link&creator=208035"
+	},
+	"item": [
+		{
+			"name": "Hive",
+			"item": [
+				{
+					"name": "Wasps",
+					"item": [
+						{
+							"name": "/wasp/reportin/:id",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{HIVE}}/wasp/reportin/:id",
+									"host": [
+										"{{HIVE}}"
+									],
+									"path": [
+										"wasp",
+										"reportin",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "",
+											"description": "Wasp's ID"
+										}
+									]
+								},
+								"description": "Wasps hits this endpoint when the load test is done with its results\n\n**This is used by the wasp and should not be used directly** "
+							},
+							"response": []
+						},
+						{
+							"name": "/wasp/reportin/:id/failed",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{HIVE}}/wasp/reportin/:id/failed",
+									"host": [
+										"{{HIVE}}"
+									],
+									"path": [
+										"wasp",
+										"reportin",
+										":id",
+										"failed"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "",
+											"description": "Wasp's ID"
+										}
+									]
+								},
+								"description": "Wasps hits this endpoint when the load test it has failed its loadtest\n\n**This is used by the wasp and should not be used directly** "
+							},
+							"response": []
+						},
+						{
+							"name": "/wasp/checkin/:port",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{HIVE}}/wasp/checkin/:port",
+									"host": [
+										"{{HIVE}}"
+									],
+									"path": [
+										"wasp",
+										"checkin",
+										":port"
+									],
+									"variable": [
+										{
+											"key": "port"
+										}
+									]
+								},
+								"description": "Wasps hits this endpoint when it first starts up to let hive know its IP and port number.\n\n**This is used by the wasp and should not be used directly** "
+							},
+							"response": [
+								{
+									"name": "/wasp/checkin/:port",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{HIVE}}/wasp/checkin/:port",
+											"host": [
+												"{{HIVE}}"
+											],
+											"path": [
+												"wasp",
+												"checkin",
+												":port"
+											],
+											"variable": [
+												{
+													"key": "undefined",
+													"value": "1234"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "content-type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "content-length",
+											"value": "14"
+										},
+										{
+											"key": "Date",
+											"value": "Fri, 24 May 2019 19:50:00 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"wasp6\"\n}"
+								}
+							]
+						},
+						{
+							"name": "/wasp/heartbeat/:port",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{HIVE}}/wasp/heartbeat/:port",
+									"host": [
+										"{{HIVE}}"
+									],
+									"path": [
+										"wasp",
+										"heartbeat",
+										":port"
+									],
+									"variable": [
+										{
+											"key": "port"
+										}
+									]
+								},
+								"description": "Wasps hit this endpoint every 5 seconds to let Hive know they are not ded boiz.\n\n**This is used by the wasp and should not be used directly** "
+							},
+							"response": [
+								{
+									"name": "/wasp/checkin/:port",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{HIVE}}/wasp/checkin/:port",
+											"host": [
+												"{{HIVE}}"
+											],
+											"path": [
+												"wasp",
+												"checkin",
+												":port"
+											],
+											"variable": [
+												{
+													"key": "undefined",
+													"value": "1234"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "content-type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "content-length",
+											"value": "14"
+										},
+										{
+											"key": "Date",
+											"value": "Fri, 24 May 2019 19:50:00 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"wasp6\"\n}"
+								}
+							]
+						},
+						{
+							"name": "/wasp/boop/snoots",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{HIVE}}/wasp/boop/snoots",
+									"host": [
+										"{{HIVE}}"
+									],
+									"path": [
+										"wasp",
+										"boop",
+										"snoots"
+									]
+								},
+								"description": "Force a health check on all the wasps to see if there alive."
+							},
+							"response": []
+						},
+						{
+							"name": "/wasp/list",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{HIVE}}/wasp/list",
+									"host": [
+										"{{HIVE}}"
+									],
+									"path": [
+										"wasp",
+										"list"
+									]
+								},
+								"description": "Lists all current wasps that have checked in."
+							},
+							"response": [
+								{
+									"name": "/wasp/list",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{HIVE}}/wasp/list",
+											"host": [
+												"{{HIVE}}"
+											],
+											"path": [
+												"wasp",
+												"list"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "content-type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "content-length",
+											"value": "93"
+										},
+										{
+											"key": "Date",
+											"value": "Fri, 24 May 2019 19:47:00 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										}
+									],
+									"cookie": [],
+									"body": "[\n    {\n        \"ip\": \"127.0.0.1\",\n        \"port\": \"4267\",\n        \"id\": \"wasp2\"\n    },\n    {\n        \"ip\": \"127.0.0.1\",\n        \"port\": \"4268\",\n        \"id\": \"wasp3\"\n    }\n]"
+								}
+							]
+						}
+					],
+					"description": "**These are used by the wasps and should not be used directly** "
+				},
+				{
+					"name": "/hive/poke",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \n  \"t\": \"10\",\n  \"c\": \"500\",\n  \"d\": \"20\",\n  \"target\": \"http://127.0.0.1:8085\" \n}"
+						},
+						"url": {
+							"raw": "{{HIVE}}/hive/poke",
+							"host": [
+								"{{HIVE}}"
+							],
+							"path": [
+								"hive",
+								"poke"
+							]
+						},
+						"description": "starts the load test.\n\n### Varibles\n#### t\nThe amount of threads \n**Default:**10\n***Optional***\n\n#### c\nThe amount of concurrency\n**Default:**50\n***Optional***\n\n#### d\nHow long to run the test in seconds.\n**Default:**30\n***Optional***\n\n#### timeout\nSocket timeout in seconds\n**Default:**2\n***Optional***\n\n#### target\nThe target url to hit\n\n#### script\nWrk lua script code to execute \n***Optional***"
+					},
+					"response": [
+						{
+							"name": "/hive/poke",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"t\":10,\n\t\"c\":50,\n\t\"d\":5,\n\t\"target\":\"http://127.0.0.1:1234/\"\n}"
+								},
+								"url": {
+									"raw": "{{HIVE}}/hive/poke",
+									"host": [
+										"{{HIVE}}"
+									],
+									"path": [
+										"hive",
+										"poke"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "text/plain; charset=utf-8"
+								},
+								{
+									"key": "content-length",
+									"value": "17"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 May 2019 19:50:42 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "Angry wasp noises"
+						}
+					]
+				},
+				{
+					"name": "/hive/torch",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{HIVE}}/hive/torch",
+							"host": [
+								"{{HIVE}}"
+							],
+							"path": [
+								"hive",
+								"torch"
+							]
+						},
+						"description": "Deletes all wasps that have checked in. "
+					},
+					"response": [
+						{
+							"name": "/hive/torch",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{HIVE}}/hive/torch",
+									"host": [
+										"{{HIVE}}"
+									],
+									"path": [
+										"hive",
+										"torch"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "text/plain; charset=utf-8"
+								},
+								{
+									"key": "content-length",
+									"value": "23"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 May 2019 19:45:08 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "R.I.P All 0 wasps. :'('"
+						}
+					]
+				},
+				{
+					"name": "/hive/ceasefire",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HIVE}}/hive/ceasefire",
+							"host": [
+								"{{HIVE}}"
+							],
+							"path": [
+								"hive",
+								"ceasefire"
+							]
+						},
+						"description": "Stops all the wasps from shooting."
+					},
+					"response": []
+				},
+				{
+					"name": "/hive/spawn/local/:amount",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HIVE}}/hive/spawn/local/:amount",
+							"host": [
+								"{{HIVE}}"
+							],
+							"path": [
+								"hive",
+								"spawn",
+								"local",
+								":amount"
+							],
+							"variable": [
+								{
+									"key": "amount"
+								}
+							]
+						},
+						"description": "Spawns local wasps by the specified amount."
+					},
+					"response": []
+				},
+				{
+					"name": "/hive/status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{HIVE}}/hive/status",
+							"host": [
+								"{{HIVE}}"
+							],
+							"path": [
+								"hive",
+								"status"
+							]
+						},
+						"description": "Gives the current oprational status of the hive."
+					},
+					"response": [
+						{
+							"name": "/hive/status",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{HIVE}}/hive/status",
+									"host": [
+										"{{HIVE}}"
+									],
+									"path": [
+										"hive",
+										"status"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "text/plain; charset=utf-8"
+								},
+								{
+									"key": "content-length",
+									"value": "57"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 May 2019 19:45:35 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "Hive is oprational with 0 wasps ready and waiting orders."
+						}
+					]
+				},
+				{
+					"name": "/hive/status/report",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{HIVE}}/hive/status/report",
+							"host": [
+								"{{HIVE}}"
+							],
+							"path": [
+								"hive",
+								"status",
+								"report"
+							]
+						},
+						"description": "Gives full report of the load test."
+					},
+					"response": [
+						{
+							"name": "/hive/status/report",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{HIVE}}/hive/status/report",
+									"host": [
+										"{{HIVE}}"
+									],
+									"path": [
+										"hive",
+										"status",
+										"report"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "content-length",
+									"value": "1044"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 May 2019 19:46:16 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"wasp\": {\n        \"reports\": [\n            {\n                \"wasp\": {\n                    \"ip\": \"127.0.0.1\",\n                    \"port\": \"4267\",\n                    \"id\": \"wasp0\"\n                },\n                \"status\": \"complete\",\n                \"stats\": {\n                    \"latency\": {\n                        \"avg\": 4.03,\n                        \"stdev\": 0.64496,\n                        \"max\": 9.56,\n                        \"stdevPercent\": \"91.59%\"\n                    },\n                    \"rps\": {\n                        \"avg\": 1250,\n                        \"stdev\": 175.69,\n                        \"max\": 2810,\n                        \"stdevPercent\": \"95.24%\"\n                    },\n                    \"read\": 10527703.04,\n                    \"totalRequests\": 62504,\n                    \"totalRPS\": 12247.8,\n                    \"tps\": 2065694.72,\n                    \"errors\": {},\n                    \"nonSuccessRequests\": 31187\n                }\n            },\n            {\n                \"wasp\": {\n                    \"ip\": \"127.0.0.1\",\n                    \"port\": \"4268\",\n                    \"id\": \"wasp1\"\n                },\n                \"status\": \"complete\",\n                \"stats\": {\n                    \"latency\": {\n                        \"avg\": 4.03,\n                        \"stdev\": 0.6691900000000001,\n                        \"max\": 9.62,\n                        \"stdevPercent\": \"91.57%\"\n                    },\n                    \"rps\": {\n                        \"avg\": 1250,\n                        \"stdev\": 196.85,\n                        \"max\": 2850,\n                        \"stdevPercent\": \"94.85%\"\n                    },\n                    \"read\": 10569646.08,\n                    \"totalRequests\": 62743,\n                    \"totalRPS\": 12290.78,\n                    \"tps\": 2076180.48,\n                    \"errors\": {},\n                    \"nonSuccessRequests\": 31352\n                }\n            }\n        ]\n    },\n    \"status\": {\n        \"completed\": 2,\n        \"failed\": 0\n    },\n    \"latency\": {\n        \"avg\": 2.015,\n        \"max\": 9.62\n    },\n    \"rps\": {\n        \"avg\": 625,\n        \"max\": 2850\n    },\n    \"totalRPS\": 24538.58,\n    \"read\": {\n        \"val\": 20.119999999999997,\n        \"unit\": \"MB\"\n    },\n    \"tps\": {\n        \"val\": 3.95,\n        \"unit\": \"MB\"\n    },\n    \"totalRequests\": 125247,\n    \"nonSuccessRequests\": 0,\n    \"errors\": {\n        \"connect\": 0,\n        \"read\": 0,\n        \"write\": 0,\n        \"timeout\": 0\n    },\n    \"nonSuccessRequest\": null\n}"
+						},
+						{
+							"name": "/hive/status/report",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{HIVE}}/hive/status/report",
+									"host": [
+										"{{HIVE}}"
+									],
+									"path": [
+										"hive",
+										"status",
+										"report"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "content-length",
+									"value": "1044"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 May 2019 19:45:47 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"wasp\": {\n        \"reports\": [\n            {\n                \"wasp\": {\n                    \"ip\": \"127.0.0.1\",\n                    \"port\": \"4267\",\n                    \"id\": \"wasp0\"\n                },\n                \"status\": \"complete\",\n                \"stats\": {\n                    \"latency\": {\n                        \"avg\": 4.03,\n                        \"stdev\": 0.64496,\n                        \"max\": 9.56,\n                        \"stdevPercent\": \"91.59%\"\n                    },\n                    \"rps\": {\n                        \"avg\": 1250,\n                        \"stdev\": 175.69,\n                        \"max\": 2810,\n                        \"stdevPercent\": \"95.24%\"\n                    },\n                    \"read\": 10527703.04,\n                    \"totalRequests\": 62504,\n                    \"totalRPS\": 12247.8,\n                    \"tps\": 2065694.72,\n                    \"errors\": {},\n                    \"nonSuccessRequests\": 31187\n                }\n            },\n            {\n                \"wasp\": {\n                    \"ip\": \"127.0.0.1\",\n                    \"port\": \"4268\",\n                    \"id\": \"wasp1\"\n                },\n                \"status\": \"complete\",\n                \"stats\": {\n                    \"latency\": {\n                        \"avg\": 4.03,\n                        \"stdev\": 0.6691900000000001,\n                        \"max\": 9.62,\n                        \"stdevPercent\": \"91.57%\"\n                    },\n                    \"rps\": {\n                        \"avg\": 1250,\n                        \"stdev\": 196.85,\n                        \"max\": 2850,\n                        \"stdevPercent\": \"94.85%\"\n                    },\n                    \"read\": 10569646.08,\n                    \"totalRequests\": 62743,\n                    \"totalRPS\": 12290.78,\n                    \"tps\": 2076180.48,\n                    \"errors\": {},\n                    \"nonSuccessRequests\": 31352\n                }\n            }\n        ]\n    },\n    \"status\": {\n        \"completed\": 2,\n        \"failed\": 0\n    },\n    \"latency\": {\n        \"avg\": 2.015,\n        \"max\": 9.62\n    },\n    \"rps\": {\n        \"avg\": 625,\n        \"max\": 2850\n    },\n    \"totalRPS\": 24538.58,\n    \"read\": {\n        \"val\": 20.119999999999997,\n        \"unit\": \"MB\"\n    },\n    \"tps\": {\n        \"val\": 3.95,\n        \"unit\": \"MB\"\n    },\n    \"totalRequests\": 125247,\n    \"nonSuccessRequests\": 0,\n    \"errors\": {\n        \"connect\": 0,\n        \"read\": 0,\n        \"write\": 0,\n        \"timeout\": 0\n    },\n    \"nonSuccessRequest\": null\n}"
+						}
+					]
+				},
+				{
+					"name": "/hive/status/report/:field",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{HIVE}}/hive/status/report/:field",
+							"host": [
+								"{{HIVE}}"
+							],
+							"path": [
+								"hive",
+								"status",
+								"report",
+								":field"
+							],
+							"variable": [
+								{
+									"key": "field",
+									"value": "",
+									"description": "The field that you want."
+								}
+							]
+						},
+						"description": "Getting just what you want from the report."
+					},
+					"response": [
+						{
+							"name": "/hive/status/report/:field",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{HIVE}}/hive/status/report/:field",
+									"host": [
+										"{{HIVE}}"
+									],
+									"path": [
+										"hive",
+										"status",
+										"report",
+										":field"
+									],
+									"variable": [
+										{
+											"key": "undefined",
+											"value": "totalRPS"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "content-length",
+									"value": "8"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 May 2019 19:46:30 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "24538.58"
+						}
+					]
+				},
+				{
+					"name": "/hive/status/done",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{HIVE}}/hive/status/done",
+							"host": [
+								"{{HIVE}}"
+							],
+							"path": [
+								"hive",
+								"status",
+								"done"
+							]
+						},
+						"description": "Returns 200 when the loadtest is done. "
+					},
+					"response": [
+						{
+							"name": "/hive/status/report",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{HIVE}}/hive/status/report",
+									"host": [
+										"{{HIVE}}"
+									],
+									"path": [
+										"hive",
+										"status",
+										"report"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "content-length",
+									"value": "1044"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 May 2019 19:45:47 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"wasp\": {\n        \"reports\": [\n            {\n                \"wasp\": {\n                    \"ip\": \"127.0.0.1\",\n                    \"port\": \"4267\",\n                    \"id\": \"wasp0\"\n                },\n                \"status\": \"complete\",\n                \"stats\": {\n                    \"latency\": {\n                        \"avg\": 4.03,\n                        \"stdev\": 0.64496,\n                        \"max\": 9.56,\n                        \"stdevPercent\": \"91.59%\"\n                    },\n                    \"rps\": {\n                        \"avg\": 1250,\n                        \"stdev\": 175.69,\n                        \"max\": 2810,\n                        \"stdevPercent\": \"95.24%\"\n                    },\n                    \"read\": 10527703.04,\n                    \"totalRequests\": 62504,\n                    \"totalRPS\": 12247.8,\n                    \"tps\": 2065694.72,\n                    \"errors\": {},\n                    \"nonSuccessRequests\": 31187\n                }\n            },\n            {\n                \"wasp\": {\n                    \"ip\": \"127.0.0.1\",\n                    \"port\": \"4268\",\n                    \"id\": \"wasp1\"\n                },\n                \"status\": \"complete\",\n                \"stats\": {\n                    \"latency\": {\n                        \"avg\": 4.03,\n                        \"stdev\": 0.6691900000000001,\n                        \"max\": 9.62,\n                        \"stdevPercent\": \"91.57%\"\n                    },\n                    \"rps\": {\n                        \"avg\": 1250,\n                        \"stdev\": 196.85,\n                        \"max\": 2850,\n                        \"stdevPercent\": \"94.85%\"\n                    },\n                    \"read\": 10569646.08,\n                    \"totalRequests\": 62743,\n                    \"totalRPS\": 12290.78,\n                    \"tps\": 2076180.48,\n                    \"errors\": {},\n                    \"nonSuccessRequests\": 31352\n                }\n            }\n        ]\n    },\n    \"status\": {\n        \"completed\": 2,\n        \"failed\": 0\n    },\n    \"latency\": {\n        \"avg\": 2.015,\n        \"max\": 9.62\n    },\n    \"rps\": {\n        \"avg\": 625,\n        \"max\": 2850\n    },\n    \"totalRPS\": 24538.58,\n    \"read\": {\n        \"val\": 20.119999999999997,\n        \"unit\": \"MB\"\n    },\n    \"tps\": {\n        \"val\": 3.95,\n        \"unit\": \"MB\"\n    },\n    \"totalRequests\": 125247,\n    \"nonSuccessRequests\": 0,\n    \"errors\": {\n        \"connect\": 0,\n        \"read\": 0,\n        \"write\": 0,\n        \"timeout\": 0\n    },\n    \"nonSuccessRequest\": null\n}"
+						},
+						{
+							"name": "/hive/status/report",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{HIVE}}/hive/status/report",
+									"host": [
+										"{{HIVE}}"
+									],
+									"path": [
+										"hive",
+										"status",
+										"report"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "content-length",
+									"value": "1044"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 May 2019 19:46:16 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"wasp\": {\n        \"reports\": [\n            {\n                \"wasp\": {\n                    \"ip\": \"127.0.0.1\",\n                    \"port\": \"4267\",\n                    \"id\": \"wasp0\"\n                },\n                \"status\": \"complete\",\n                \"stats\": {\n                    \"latency\": {\n                        \"avg\": 4.03,\n                        \"stdev\": 0.64496,\n                        \"max\": 9.56,\n                        \"stdevPercent\": \"91.59%\"\n                    },\n                    \"rps\": {\n                        \"avg\": 1250,\n                        \"stdev\": 175.69,\n                        \"max\": 2810,\n                        \"stdevPercent\": \"95.24%\"\n                    },\n                    \"read\": 10527703.04,\n                    \"totalRequests\": 62504,\n                    \"totalRPS\": 12247.8,\n                    \"tps\": 2065694.72,\n                    \"errors\": {},\n                    \"nonSuccessRequests\": 31187\n                }\n            },\n            {\n                \"wasp\": {\n                    \"ip\": \"127.0.0.1\",\n                    \"port\": \"4268\",\n                    \"id\": \"wasp1\"\n                },\n                \"status\": \"complete\",\n                \"stats\": {\n                    \"latency\": {\n                        \"avg\": 4.03,\n                        \"stdev\": 0.6691900000000001,\n                        \"max\": 9.62,\n                        \"stdevPercent\": \"91.57%\"\n                    },\n                    \"rps\": {\n                        \"avg\": 1250,\n                        \"stdev\": 196.85,\n                        \"max\": 2850,\n                        \"stdevPercent\": \"94.85%\"\n                    },\n                    \"read\": 10569646.08,\n                    \"totalRequests\": 62743,\n                    \"totalRPS\": 12290.78,\n                    \"tps\": 2076180.48,\n                    \"errors\": {},\n                    \"nonSuccessRequests\": 31352\n                }\n            }\n        ]\n    },\n    \"status\": {\n        \"completed\": 2,\n        \"failed\": 0\n    },\n    \"latency\": {\n        \"avg\": 2.015,\n        \"max\": 9.62\n    },\n    \"rps\": {\n        \"avg\": 625,\n        \"max\": 2850\n    },\n    \"totalRPS\": 24538.58,\n    \"read\": {\n        \"val\": 20.119999999999997,\n        \"unit\": \"MB\"\n    },\n    \"tps\": {\n        \"val\": 3.95,\n        \"unit\": \"MB\"\n    },\n    \"totalRequests\": 125247,\n    \"nonSuccessRequests\": 0,\n    \"errors\": {\n        \"connect\": 0,\n        \"read\": 0,\n        \"write\": 0,\n        \"timeout\": 0\n    },\n    \"nonSuccessRequest\": null\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Wasp",
+			"item": [
+				{
+					"name": "/fire",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"t\":12,\n\t\"c\":400,\n\t\"d\":10,\n\t\"target\":\"https://127.0.0.1:3001/\",\n    \"method\": \"get\",\n    \"headers\": {\n        \"content-type\": \"application/json\",\n        \"some-random-header\": \"hi\"\n    },\n    \"body\" : \"{\\n  \\\"foo\\\": \\\"bar\\\",\\n  \\\"lar\\\": \\\"moo\\\"\\n}\"\n}"
+						},
+						"url": {
+							"raw": "{{WASP}}/fire",
+							"host": [
+								"{{WASP}}"
+							],
+							"path": [
+								"fire"
+							]
+						},
+						"description": "Have the wasp start the loadtest.\n\n### Varibles\n#### t\nThe amount of threads \n**Default:**10\n***Optional***\n\n#### c\nThe amount of concurrency\n**Default:**50\n***Optional***\n\n#### d\nHow long to run the test in seconds.\n**Default:**30\n***Optional***\n\n#### timeout\nSocket timeout in seconds\n**Default:**2\n***Optional***\n\n#### target\nThe target url to hit\n\n#### script\nWrk lua script code to execute \n***Optional***"
+					},
+					"response": [
+						{
+							"name": "/fire",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"t\":10,\n\t\"c\":50,\n\t\"d\":5,\n\t\"target\":\"http://127.0.0.1:1234/\"\n}"
+								},
+								"url": {
+									"raw": "{{WASP}}/fire",
+									"host": [
+										"{{WASP}}"
+									],
+									"path": [
+										"fire"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "text/plain; charset=utf-8"
+								},
+								{
+									"key": "content-length",
+									"value": "18"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 24 May 2019 19:48:24 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "Rockets launching!"
+						}
+					]
+				},
+				{
+					"name": "/die",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{WASP}}/die",
+							"host": [
+								"{{WASP}}"
+							],
+							"path": [
+								"die"
+							]
+						},
+						"description": "Kill the wasp like the fearful god you are."
+					},
+					"response": []
+				},
+				{
+					"name": "/boop",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{WASP}}/boop",
+							"host": [
+								"{{WASP}}"
+							],
+							"path": [
+								"boop"
+							]
+						},
+						"description": "Boop the snoot of the wasp to see if its still alive."
+					},
+					"response": []
+				},
+				{
+					"name": "/ceasefire",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{WASP}}/ceasefire",
+							"host": [
+								"{{WASP}}"
+							],
+							"path": [
+								"ceasefire"
+							]
+						},
+						"description": "Tells the wasp to stop shooting."
+					},
+					"response": []
+				}
+			],
+			"description": "Wasps endpoints, you should let Hive exclusive use them instead of directly hitting them."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

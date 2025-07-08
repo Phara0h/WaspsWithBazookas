@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # Test Dummy Server (target for load testing)
+  test-dummy:
+    build: .
+    command: test-dummy --port 8080 --host 0.0.0.0
+    ports:
+      - "8080:8080"
+    networks:
+      - wasp-network
+
+  # Hive (command center)
+  hive:
+    build: .
+    command: hive --port 4269 --host 0.0.0.0
+    ports:
+      - "4269:4269"
+    networks:
+      - wasp-network
+    depends_on:
+      - test-dummy
+
+  # Wasp 1
+  wasp-1:
+    build: .
+    command: wasp --hive-url http://hive:4269 --port 3001 --host 0.0.0.0
+    ports:
+      - "3001:3001"
+    networks:
+      - wasp-network
+    depends_on:
+      - hive
+
+  # Wasp 2
+  wasp-2:
+    build: .
+    command: wasp --hive-url http://hive:4269 --port 3002 --host 0.0.0.0
+    ports:
+      - "3002:3002"
+    networks:
+      - wasp-network
+    depends_on:
+      - hive
+
+  # Wasp 3
+  wasp-3:
+    build: .
+    command: wasp --hive-url http://hive:4269 --port 3003 --host 0.0.0.0
+    ports:
+      - "3003:3003"
+    networks:
+      - wasp-network
+    depends_on:
+      - hive
+
+networks:
+  wasp-network:
+    driver: bridge 

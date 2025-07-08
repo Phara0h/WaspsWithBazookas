@@ -1,0 +1,102 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            asset_name: waspswithbazookas-linux-x86_64
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            asset_name: waspswithbazookas-linux-aarch64
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            asset_name: waspswithbazookas-macos-x86_64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            asset_name: waspswithbazookas-macos-aarch64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            asset_name: waspswithbazookas-windows-x86_64
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+          override: true
+      
+      - name: Build
+        run: |
+          cargo build --release --target ${{ matrix.target }}
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/hive dist/hive
+          cp target/${{ matrix.target }}/release/wasp dist/wasp
+          cp target/${{ matrix.target }}/release/test-dummy dist/test-dummy
+          tar -czf ${{ matrix.asset_name }}.tar.gz -C dist .
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.asset_name }}
+          path: ${{ matrix.asset_name }}.tar.gz
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            waspswithbazookas-linux-x86_64/waspswithbazookas-linux-x86_64.tar.gz
+            waspswithbazookas-linux-aarch64/waspswithbazookas-linux-aarch64.tar.gz
+            waspswithbazookas-macos-x86_64/waspswithbazookas-macos-x86_64.tar.gz
+            waspswithbazookas-macos-aarch64/waspswithbazookas-macos-aarch64.tar.gz
+            waspswithbazookas-windows-x86_64/waspswithbazookas-windows-x86_64.tar.gz
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Optional: Update Homebrew formula in separate repo
+  homebrew:
+    needs: release
+    runs-on: ubuntu-latest
+    if: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Calculate SHA256
+        id: sha256
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          curl -L -o macos_x86_64.tar.gz "https://github.com/Phara0h/WaspsWithBazookas/releases/download/${VERSION}/waspswithbazookas-macos-x86_64.tar.gz"
+          SHA256_MACOS_X86_64=$(sha256sum macos_x86_64.tar.gz | cut -d' ' -f1)
+          echo "sha256_macos_x86_64=$SHA256_MACOS_X86_64" >> $GITHUB_OUTPUT
+      
+      - name: Update Homebrew Formula
+        uses: dawidd6/action-homebrew-bump-formula@v3
+        with:
+          formula-name: waspswithbazookas
+          homebrew-tap: Phara0h/homebrew-waspswithbazookas
+          download-url: https://github.com/Phara0h/WaspsWithBazookas/releases/download/${{ github.event.release.tag_name }}/waspswithbazookas-macos-x86_64.tar.gz
+          sha256: ${{ steps.sha256.outputs.sha256_macos_x86_64 }}
+          commit-message: "Update waspswithbazookas to ${{ github.event.release.tag_name }}"
+        env:
+          COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }} 

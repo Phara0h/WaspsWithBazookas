@@ -52,7 +52,7 @@ struct BattleStats {
     latency_percentiles: Option<LatencyPercentiles>,
     connection_info: Option<ConnectionInfo>,
     timing_info: Option<TimingInfo>,
-    raw_benchmark_data: Option<serde_json::Value>,
+    raw_battle_data: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -203,8 +203,8 @@ struct AppState {
     run_timestamp: Arc<Mutex<f64>>,
     id_count: Arc<Mutex<u32>>,
     report: Arc<Mutex<Option<Report>>>,
-    log_path: Option<String>,
     report_generated: Arc<Mutex<bool>>, // Flag to prevent multiple gen_report calls
+    hive_token: Option<String>, // Token for authenticating with wasps
 }
 
 // ============================================================================
@@ -245,25 +245,23 @@ fn create_wasp_client() -> reqwest::Client {
 }
 
 /// Send HTTP request to a wasp
-async fn send_wasp_request(url: &str, method: &str) -> Result<reqwest::Response, reqwest::Error> {
+async fn send_wasp_request(url: &str, method: &str, hive_token: &Option<String>) -> Result<reqwest::Response, reqwest::Error> {
     let client = create_wasp_client();
-    match method {
-        "GET" => client.get(url).send().await,
-        "DELETE" => client.delete(url).send().await,
+    let mut request_builder = match method {
+        "GET" => client.get(url),
+        "DELETE" => client.delete(url),
         _ => {
             // For unsupported methods, just return a GET request as fallback
-            client.get(url).send().await
+            client.get(url)
         }
+    };
+    
+    // Add authentication header if token is provided
+    if let Some(token) = hive_token {
+        request_builder = request_builder.header("wwb-token", token);
     }
-}
-
-/// Kill a process by PID
-fn kill_process(pid: u32) -> Result<(), std::io::Error> {
-    std::process::Command::new("kill")
-        .arg(pid.to_string())
-        .output()
-        .map(|_| ())
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
+    
+    request_builder.send().await
 }
 
 /// Update wasp heartbeat
@@ -329,8 +327,11 @@ async fn main() -> anyhow::Result<()> {
     setup_logging(log_path.clone())?;
     
     let addr = format!("{}:{}", host, port);
-    info!("🏠 Hive server starting on {}", addr);
+    info!("🏠 Hive server {} starting on {}", env!("CARGO_PKG_VERSION"), addr);
+    info!("🐝 Access the client locally at http://127.0.0.1:{}", port);
     info!("🐝 Ready to coordinate the wasps!");
+    
+    let hive_token = args.get_one::<String>("wwb-token").map(|s| s.clone());
     
     let state = Arc::new(AppState {
         wasps: Arc::new(Mutex::new(Vec::new())),
@@ -342,8 +343,8 @@ async fn main() -> anyhow::Result<()> {
         run_timestamp: Arc::new(Mutex::new(0.0)),
         id_count: Arc::new(Mutex::new(0)),
         report: Arc::new(Mutex::new(None)),
-        log_path,
         report_generated: Arc::new(Mutex::new(false)),
+        hive_token,
     });
 
     // Start health check loop
@@ -430,7 +431,7 @@ async fn wasp_heartbeat(
     if update_wasp_heartbeat(&state, &ip, &port).await {
         StatusCode::OK
     } else {
-        info!("A random wasp is reporting a heartbeat that is not part of the hive!");
+        info!("A random wasp is waving but don't know who it is!");
         StatusCode::BAD_REQUEST
     }
 }
@@ -499,10 +500,11 @@ async fn boop_snoots(State(state): State<Arc<AppState>>) -> Result<Json<String>,
         return Err((StatusCode::BAD_REQUEST, "There are no wasps to boop.".to_string()));
     }
     info!("Booping the snoots of the buzzy bois");
+
     let num_wasps = wasps.len();
     for wasp in wasps.iter() {
         let url = format!("http://{}:{}/boop", wasp.ip, wasp.port);
-        match send_wasp_request(&url, "GET").await {
+        match send_wasp_request(&url, "GET", &state.hive_token).await {
             Ok(_) => {
                 // Request successful
             }
@@ -514,7 +516,7 @@ async fn boop_snoots(State(state): State<Arc<AppState>>) -> Result<Json<String>,
     }
     check_health_status(&state).await;
     info!("Total Wasps: {}", num_wasps);
-    Ok(Json(format!("Hive is operational with {} wasps ready and waiting orders.", num_wasps)))
+    Ok(Json(format!("{} snoots booped and waiting orders.", num_wasps)))
 }
 
 async fn wasp_reportin(
@@ -578,7 +580,7 @@ async fn wasp_reportin(
             .and_then(|v| v.as_f64())
             .unwrap_or(total_rps);
         
-        // Create enhanced benchmark stats
+        // Create enhanced battle stats
         let mut enhanced_stats = BattleStats {
             total_rps,
             read: bytes,
@@ -597,7 +599,7 @@ async fn wasp_reportin(
             latency_percentiles: None,
             connection_info: None,
             timing_info: None,
-            raw_benchmark_data: Some(stats_data.clone()),
+            raw_battle_data: Some(stats_data.clone()),
         };
         
         // Extract status counts if available
@@ -783,7 +785,7 @@ async fn hive_ceasefire(State(state): State<Arc<AppState>>) -> Result<Json<Strin
     for wasp in wasps.iter() {
         let url = format!("http://{}:{}/ceasefire", wasp.ip, wasp.port);
         
-        if let Err(e) = send_wasp_request(&url, "GET").await {
+        if let Err(e) = send_wasp_request(&url, "GET", &state.hive_token).await {
             error!("Error sending ceasefire to wasp: {}", e);
         }
     }
@@ -817,7 +819,7 @@ async fn hive_poke(
     *state.wasps_running_count.lock().await = wasp_count as u32;
     *state.run_timestamp.lock().await = get_current_time();
     *state.duration.lock().await = duration as u64;
-    *state.report_generated.lock().await = false; // Reset flag for new benchmark
+    *state.report_generated.lock().await = false; // Reset flag for new battle
     
     // Create initial report
     let report = Report {
@@ -844,8 +846,14 @@ async fn hive_poke(
     for wasp in wasps.iter() {
         let url = format!("http://{}:{}/fire", wasp.ip, wasp.port);
         let client = create_wasp_client();
+        let mut request_builder = client.put(&url).json(&request);
         
-        if let Err(e) = client.put(&url).json(&request).send().await {
+        // Add authentication header if token is provided
+        if let Some(token) = &state.hive_token {
+            request_builder = request_builder.header("wwb-token", token);
+        }
+        
+        if let Err(e) = request_builder.send().await {
             error!("Error sending fire command to wasp: {}", e);
         }
     }
@@ -908,12 +916,21 @@ async fn hive_torch(State(state): State<Arc<AppState>>)-> Result<Json<String>, (
     
     // Send kill commands to all wasps concurrently
     let mut kill_tasks = Vec::new();
+    let hive_token = state.hive_token.clone();
     for wasp in wasps.iter() {
         let url = format!("http://{}:{}/die", wasp.ip, wasp.port);
         let client = client.clone();
+        let hive_token = hive_token.clone();
         
         let task = tokio::spawn(async move {
-            match client.delete(&url).send().await {
+            let mut request_builder = client.delete(&url);
+            
+            // Add authentication header if token is provided
+            if let Some(token) = &hive_token {
+                request_builder = request_builder.header("wwb-token", token);
+            }
+            
+            match request_builder.send().await {
                 Ok(_) => {
                     info!("Successfully sent kill command to wasp at {}", url);
                     Ok(())
@@ -1044,7 +1061,7 @@ async fn hive_spawn_local(
     if is_running(&state).await {
         return Err((StatusCode::BAD_REQUEST, "Still running".to_string()));
     }
-    info!("Starting {} Wasps...", amount);
+    info!("Spawning {} buzzy bois...", amount);
     
     // Find available ports starting from 3001
     let mut next_port = 3001;
@@ -1067,9 +1084,15 @@ async fn hive_spawn_local(
         let hive_url = format!("http://127.0.0.1:{}", 4269);
         let wasp_port = next_port.to_string();
         
-        let child = std::process::Command::new("wasp")
-            .args(&["--hive-url", &hive_url, "--port", &wasp_port])
-            .spawn();
+        let mut command = std::process::Command::new("wasp");
+        command.args(&["--hive-url", &hive_url, "--port", &wasp_port]);
+        
+        // Add token if configured
+        if let Some(token) = &state.hive_token {
+            command.args(&["--wwb-token", token]);
+        }
+        
+        let child = command.spawn();
             
         match child {
             Ok(_child) => {
@@ -1106,7 +1129,7 @@ async fn gen_report(state: &Arc<AppState>) {
 
     let report = state.report.lock().await;
     if let Some(ref report) = *report {
-        info!("Benchmark completed!");
+        info!("Battle completed!");
         info!("Target: {}", report.target);
         info!("Total RPS: {:.2}", report.total_rps);
         info!("Total Requests: {}", report.total_requests);
@@ -1125,7 +1148,7 @@ async fn check_health_status(state: &Arc<AppState>) {
         is_online
     });
     
-    info!("Health check complete. {} wasps online", wasps.len());
+    //info!("Health check complete. {} wasps online", wasps.len());
 }
 
 async fn health_check_loop(state: Arc<AppState>) {
@@ -1142,9 +1165,9 @@ async fn health_check_loop(state: Arc<AppState>) {
 // ============================================================================
 
 fn build_cli() -> Command {
-    Command::new("hive")
-        .version("1.0.0")
-        .about("Hive Server - Wasp Coordination Tool")
+    Command::new("Hive")
+        .version(env!("CARGO_PKG_VERSION"))
+        .about("Wasp Hive Server")
         .arg(
             Arg::new("port")
                 .short('p')
@@ -1155,6 +1178,7 @@ fn build_cli() -> Command {
         )
         .arg(
             Arg::new("host")
+                .short('i')
                 .long("host")
                 .help("Host to bind to")
                 .default_value("0.0.0.0")
@@ -1162,8 +1186,16 @@ fn build_cli() -> Command {
         )
         .arg(
             Arg::new("log")
+                .short('l')
                 .long("log")
                 .help("Log file path")
+                .value_parser(clap::value_parser!(String)),
+        )
+        .arg(
+            Arg::new("wwb-token")
+                .short('t')
+                .long("wwb-token")
+                .help("Sets a server authentication token (optional)")
                 .value_parser(clap::value_parser!(String)),
         )
 } 

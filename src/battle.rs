@@ -663,7 +663,7 @@ fn run_thread(
                     }
                     // Read body and count bytes
                     let mut body_bytes = 0;
-                    let mut body = header_buf[header_end..].to_vec();
+                    let body = header_buf[header_end..].to_vec();
                     body_bytes += body.len();
                     if let Some(cl) = content_length {
                         while body_bytes < cl {
