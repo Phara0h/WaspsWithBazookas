@@ -32,11 +32,6 @@ jobs:
           curl -L -o linux_x86_64.tar.gz "https://github.com/Phara0h/WaspsWithBazookas/releases/download/${VERSION}/waspswithbazookas-linux-x86_64.tar.gz"
           SHA256_LINUX_X86_64=$(sha256sum linux_x86_64.tar.gz | cut -d' ' -f1)
           echo "sha256_linux_x86_64=$SHA256_LINUX_X86_64" >> $GITHUB_OUTPUT
-          
-          # For Linux aarch64
-          curl -L -o linux_aarch64.tar.gz "https://github.com/Phara0h/WaspsWithBazookas/releases/download/${VERSION}/waspswithbazookas-linux-aarch64.tar.gz"
-          SHA256_LINUX_AARCH64=$(sha256sum linux_aarch64.tar.gz | cut -d' ' -f1)
-          echo "sha256_linux_aarch64=$SHA256_LINUX_AARCH64" >> $GITHUB_OUTPUT
       
       - name: Update Homebrew Formula
         uses: dawidd6/action-homebrew-bump-formula@v4
