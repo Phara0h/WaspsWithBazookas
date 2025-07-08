@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 
 $packageName = 'waspswithbazookas'
 $toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
-$url = 'https://github.com/Phara0h/WaspsWithBazookas/releases/download/v2.0.0/waspswithbazookas-windows-x86_64.tar.gz'
+$url = 'https://github.com/Phara0h/WaspsWithBazookas/releases/download/v2.0.1/waspswithbazookas-windows-x86_64.tar.gz'
 $checksum = 'PLACEHOLDER_SHA256'
 $checksumType = 'sha256'
 

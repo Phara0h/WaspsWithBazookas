@@ -155,8 +155,15 @@ This project is licensed under the GNU General Public License v2.0 - see the [LI
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
-#### [v2.0.0](https://github.com/Phara0h/WaspsWithBazookas/compare/v2.0.1...v2.0.0)
+#### [v2.0.1](https://github.com/Phara0h/WaspsWithBazookas/compare/v2.0.1...v2.0.1)
 
+- Fixed windows issue with set_tcp_nodelay [`58ac9f1`](https://github.com/Phara0h/WaspsWithBazookas/commit/58ac9f17c732d50a26474a9a68d6aa87eb74b56b)
+- Remove ARM64 Linux target due to OpenSSL cross-compilation issues [`d8ffc33`](https://github.com/Phara0h/WaspsWithBazookas/commit/d8ffc338bf1f708c5bd8430cfd057fdf5b39336b)
+- Update release.yml [`98fa4f7`](https://github.com/Phara0h/WaspsWithBazookas/commit/98fa4f7415748c1021b047cd343c9e962382652b)
+- Update release.yml [`98fad23`](https://github.com/Phara0h/WaspsWithBazookas/commit/98fad2330da4e6f05fe2e333651bdfa614042c5c)
+- Update release.yml [`79c745d`](https://github.com/Phara0h/WaspsWithBazookas/commit/79c745d596582f638a12f6a207e43cb0a1422354)
+- Update release.yml [`4ab5ba5`](https://github.com/Phara0h/WaspsWithBazookas/commit/4ab5ba5161c08362948962e0fde36971ee12ea2d)
+- updated docs and attempt to fix release action [`98a24b4`](https://github.com/Phara0h/WaspsWithBazookas/commit/98a24b4436890ebc5de09383808c947e74023c7c)
 - Update release.yml [`606a295`](https://github.com/Phara0h/WaspsWithBazookas/commit/606a29540651f21e130980f02796e58e58ec6a1a)
 - Update release.yml [`de332e9`](https://github.com/Phara0h/WaspsWithBazookas/commit/de332e963840e045fe62254fa4881af5f0ed7ad1)
 - Update release.yml [`efa001c`](https://github.com/Phara0h/WaspsWithBazookas/commit/efa001c101a6d26a14542bf19ba5ccfa47cf8197)
