@@ -2,8 +2,27 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
-#### [v2.0.1](https://github.com/Phara0h/WaspsWithBazookas/compare/v2.0.1...v2.0.1)
+#### [v2.0.2](https://github.com/Phara0h/WaspsWithBazookas/compare/v2.0.1...v2.0.2)
 
+- Update Cargo.toml [`3288762`](https://github.com/Phara0h/WaspsWithBazookas/commit/328876217bf890f8f9c05c6254b7586ef464c20a)
+- Update README.md [`80c0213`](https://github.com/Phara0h/WaspsWithBazookas/commit/80c02136b050ed2405a4ac9998fe6b236b6c7b38)
+- Removed chocolatey don't want the hassle [`ce5eae5`](https://github.com/Phara0h/WaspsWithBazookas/commit/ce5eae52542e736a61e7a4bb35468e09d97f4f7b)
+- Update chocolatey.yml [`9c10910`](https://github.com/Phara0h/WaspsWithBazookas/commit/9c1091054237b1698be8106332fe3994496f8713)
+- Fix Chocolatey workflow triggers - add multiple trigger types and better version handling [`b1170ca`](https://github.com/Phara0h/WaspsWithBazookas/commit/b1170cac90eee9b53b9b0bc2c039e1d5c1a06998)
+- Fix Chocolatey workflow to properly create packages in chocolatey-community repository [`91f1869`](https://github.com/Phara0h/WaspsWithBazookas/commit/91f1869ddb44b7d288a96b3e199eb33f4347c0c3)
+- Remove redundant homebrew.yml workflow - using release.yml for Homebrew core submission [`b1b2ff6`](https://github.com/Phara0h/WaspsWithBazookas/commit/b1b2ff68bd05ae062f23f009c857fea6eb093b88)
+- homebrew fixes [`8d79830`](https://github.com/Phara0h/WaspsWithBazookas/commit/8d798305e6a917e7708508f947628ec1c8514eb3)
+- Fix Homebrew formula to build from source and clean up old ARM64 references [`18f9375`](https://github.com/Phara0h/WaspsWithBazookas/commit/18f9375cc4a053d6bfdafdeff4619054f26b3615)
+- Update Homebrew workflow to use mislav/bump-homebrew-formula-action for core submission [`29f296a`](https://github.com/Phara0h/WaspsWithBazookas/commit/29f296a792cae96cf99e4ce076b31c3958e00c47)
+- Fix Homebrew formula to build from source instead of using cargo install [`f84178d`](https://github.com/Phara0h/WaspsWithBazookas/commit/f84178d02b41def445037d01dc713848fe1b2dfe)
+- Fix Homebrew formula update action - downgrade to v3 and add debugging [`7ca1c8d`](https://github.com/Phara0h/WaspsWithBazookas/commit/7ca1c8df96aea8df7a86fe9bac12fb06518dea7a)
+- Update INTRO.md [`45c25b4`](https://github.com/Phara0h/WaspsWithBazookas/commit/45c25b405718786974f2a204a270edb7f556f0e5)
+
+#### [v2.0.1](https://github.com/Phara0h/WaspsWithBazookas/compare/v2.0.0...v2.0.1)
+
+> 8 July 2025
+
+- chore: bump version to 2.0.1 (patch) [`10ee889`](https://github.com/Phara0h/WaspsWithBazookas/commit/10ee889468b9e29d617e4984375c505cf483bbe9)
 - Fixed windows issue with set_tcp_nodelay [`58ac9f1`](https://github.com/Phara0h/WaspsWithBazookas/commit/58ac9f17c732d50a26474a9a68d6aa87eb74b56b)
 - Remove ARM64 Linux target due to OpenSSL cross-compilation issues [`d8ffc33`](https://github.com/Phara0h/WaspsWithBazookas/commit/d8ffc338bf1f708c5bd8430cfd057fdf5b39336b)
 - Update release.yml [`98fa4f7`](https://github.com/Phara0h/WaspsWithBazookas/commit/98fa4f7415748c1021b047cd343c9e962382652b)
@@ -19,12 +38,6 @@ All notable changes to this project will be documented in this file. Dates are d
 - Update release.yml [`3039cea`](https://github.com/Phara0h/WaspsWithBazookas/commit/3039cea1bf9a367d39e19e702bb9116dbd32549a)
 - Fixed readme [`d7215e7`](https://github.com/Phara0h/WaspsWithBazookas/commit/d7215e7cc670f9a92e41546134bc82f5da5a0434)
 - Fix autochange log [`2b33b55`](https://github.com/Phara0h/WaspsWithBazookas/commit/2b33b55df4079d7819b29c19671d15ddb9a3bd5e)
-
-#### [v2.0.1](https://github.com/Phara0h/WaspsWithBazookas/compare/v2.0.0...v2.0.1)
-
-> 8 July 2025
-
-- chore: bump version to 2.0.1 (patch) [`41f1c09`](https://github.com/Phara0h/WaspsWithBazookas/commit/41f1c09e1a95c2aa761b3d56ee66b0a56caa3b4e)
 
 ### [v2.0.0](https://github.com/Phara0h/WaspsWithBazookas/compare/v1.3.0...v2.0.0)
 
