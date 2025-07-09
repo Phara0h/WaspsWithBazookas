@@ -44,32 +44,13 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Phara0h/WaspsWithBazoo
 .\install.ps1
 ```
 
-### **Option 2: Package Managers**
-
-**macOS (Homebrew):**
-```bash
-brew install waspswithbazookas
-```
-
-### **Option 3: Docker**
-
-```bash
-# Pull and run with Docker
-docker run -p 4269:4269 -p 8080:8080 phara0h/waspswithbazookas:latest
-
-# Or use Docker Compose for full setup
-git clone https://github.com/Phara0h/WaspsWithBazookas.git
-cd WaspsWithBazookas
-docker-compose up -d
-```
-
-### **Option 4: Manual Download**
+### **Option 2: Manual Download**
 
 1. Go to [GitHub Releases](https://github.com/Phara0h/WaspsWithBazookas/releases)
 2. Download the appropriate binary for your system
 3. Extract and add to your PATH
 
-### **Option 5: Cargo Install (Requires Rust)**
+### **Option 3: Cargo Install (Requires Rust)**
 
 ```bash
 # Install from crates.io (when available)
@@ -79,7 +60,7 @@ cargo install waspswithbazookas
 cargo install --git https://github.com/Phara0h/WaspsWithBazookas.git
 ```
 
-### **Option 6: Build from Source**
+### **Option 4: Build from Source**
 
 ```bash
 # Clone the repository

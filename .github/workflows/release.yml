@@ -73,45 +73,45 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # Optional: Update Homebrew formula in separate repo
-  homebrew:
-    needs: release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  # homebrew:
+  #   needs: release
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
       
-      - name: Check for Homebrew token
-        id: check_token
-        run: |
-          if [ -n "${{ secrets.HOMEBREW_TAP_TOKEN }}" ]; then
-            echo "token_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "token_exists=false" >> $GITHUB_OUTPUT
-          fi
+  #     - name: Check for Homebrew token
+  #       id: check_token
+  #       run: |
+  #         if [ -n "${{ secrets.HOMEBREW_TAP_TOKEN }}" ]; then
+  #           echo "token_exists=true" >> $GITHUB_OUTPUT
+  #         else
+  #           echo "token_exists=false" >> $GITHUB_OUTPUT
+  #         fi
       
-      - name: Calculate SHA256 for source tarball
-        id: sha256
-        if: steps.check_token.outputs.token_exists == 'true'
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          curl -L -o source.tar.gz "https://github.com/Phara0h/WaspsWithBazookas/archive/refs/tags/${VERSION}.tar.gz"
-          SHA256_SOURCE=$(sha256sum source.tar.gz | cut -d' ' -f1)
-          echo "sha256_source=$SHA256_SOURCE" >> $GITHUB_OUTPUT
+  #     - name: Calculate SHA256 for source tarball
+  #       id: sha256
+  #       if: steps.check_token.outputs.token_exists == 'true'
+  #       run: |
+  #         VERSION=${GITHUB_REF#refs/tags/}
+  #         curl -L -o source.tar.gz "https://github.com/Phara0h/WaspsWithBazookas/archive/refs/tags/${VERSION}.tar.gz"
+  #         SHA256_SOURCE=$(sha256sum source.tar.gz | cut -d' ' -f1)
+  #         echo "sha256_source=$SHA256_SOURCE" >> $GITHUB_OUTPUT
       
-      - name: Update Homebrew Formula
-        if: steps.check_token.outputs.token_exists == 'true'
-        uses: mislav/bump-homebrew-formula-action@v3
-        with:
-          formula-name: waspswithbazookas
-          homebrew-tap: Homebrew/homebrew-core
-          download-url: https://github.com/Phara0h/WaspsWithBazookas/archive/refs/tags/${{ github.ref_name }}.tar.gz
-          commit-message: |
-            waspswithbazookas ${{ github.ref_name }}
-        env:
-          COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+  #     - name: Update Homebrew Formula
+  #       if: steps.check_token.outputs.token_exists == 'true'
+  #       uses: mislav/bump-homebrew-formula-action@v3
+  #       with:
+  #         formula-name: waspswithbazookas
+  #         homebrew-tap: Homebrew/homebrew-core
+  #         download-url: https://github.com/Phara0h/WaspsWithBazookas/archive/refs/tags/${{ github.ref_name }}.tar.gz
+  #         commit-message: |
+  #           waspswithbazookas ${{ github.ref_name }}
+  #       env:
+  #         COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
       
-      - name: Skip Homebrew update
-        if: steps.check_token.outputs.token_exists == 'false'
-        run: |
-          echo "HOMEBREW_TAP_TOKEN not found, skipping Homebrew formula update"
-          echo "To enable Homebrew updates, add HOMEBREW_TAP_TOKEN to your repository secrets" 
+  #     - name: Skip Homebrew update
+  #       if: steps.check_token.outputs.token_exists == 'false'
+  #       run: |
+  #         echo "HOMEBREW_TAP_TOKEN not found, skipping Homebrew formula update"
+  #         echo "To enable Homebrew updates, add HOMEBREW_TAP_TOKEN to your repository secrets" 
