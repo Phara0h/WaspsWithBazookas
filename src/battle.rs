@@ -14,6 +14,7 @@ use nix::sys::socket::{setsockopt, sockopt::TcpNoDelay};
 use rustls::{ClientConfig, ClientConnection, ServerName};
 
 use rustls::client::{ServerCertVerified, ServerCertVerifier};
+use webpki_roots::TLS_SERVER_ROOTS;
 
 // Helper function to set TCP_NODELAY that works on both Unix and Windows
 fn set_tcp_nodelay(stream: &TcpStream) -> io::Result<()> {
@@ -40,7 +41,7 @@ pub struct RequestConfig {
     pub port: u16,
     pub headers: Vec<(String, String)>,
     pub body: Option<String>,
-    pub is_ht: bool,
+    pub is_https: bool,
 }
 
 impl RequestConfig {
@@ -49,7 +50,7 @@ impl RequestConfig {
         let host = uri.host_str().unwrap_or("127.0.0.1").to_string();
         let port = uri.port_or_known_default().unwrap_or(80);
         let path = if uri.path().is_empty() { "/" } else { uri.path() };
-        let is_ht = uri.scheme() == "ht";
+        let is_https = uri.scheme() == "https";
         
         // Parse custom headers
         let mut parsed_headers = Vec::new();
@@ -79,7 +80,7 @@ impl RequestConfig {
             port,
             headers: parsed_headers,
             body: body.map(|s| s.to_string()),
-            is_ht,
+            is_https,
         })
     }
     
@@ -252,7 +253,21 @@ struct Stats {
     status_counts: HashMap<i16, u64>,
 }
 
-
+fn create_tls_config() -> ClientConfig {
+    let mut root_cert_store = rustls::RootCertStore::empty();
+    root_cert_store.add_trust_anchors(TLS_SERVER_ROOTS.iter().map(|ta| {
+        rustls::OwnedTrustAnchor::from_subject_spki_name_constraints(
+            ta.subject,
+            ta.spki,
+            ta.name_constraints,
+        )
+    }));
+    
+    ClientConfig::builder()
+        .with_safe_defaults()
+        .with_root_certificates(root_cert_store)
+        .with_no_client_auth()
+}
 
 fn create_insecure_tls_config() -> ClientConfig {
     let root_cert_store = rustls::RootCertStore::empty();
@@ -317,7 +332,7 @@ fn resolve_address(url: &str) -> Result<SocketAddr, String> {
 }
 
 // Helper function to create connection stream
-fn create_connection_stream(addr: SocketAddr, host: &str, is_ht: bool) -> Result<ConnectionStream, String> {
+fn create_connection_stream(addr: SocketAddr, host: &str, request_config: &RequestConfig) -> Result<ConnectionStream, String> {
     let stream = TcpStream::connect(addr)
         .map_err(|e| format!("Failed to connect: {}", e))?;
     
@@ -325,12 +340,21 @@ fn create_connection_stream(addr: SocketAddr, host: &str, is_ht: bool) -> Result
     set_tcp_nodelay(&stream)
         .map_err(|e| format!("Failed to set TCP_NODELAY: {}", e))?;
     
-    if is_ht {
-        let tls_config = create_insecure_tls_config();
+    if request_config.is_https {
+        let tls_config = if request_config.is_https {
+            // Use insecure config for localhost to handle self-signed certificates
+            if request_config.host == "127.0.0.1" || request_config.host == "localhost" {
+                Some(Arc::new(create_insecure_tls_config()))
+            } else {
+                Some(Arc::new(create_tls_config()))
+            }
+        } else {
+            None
+        };
         let server_name = ServerName::try_from(host)
             .map_err(|e| format!("Invalid server name: {}", e))?;
         
-        let tls_conn = ClientConnection::new(Arc::new(tls_config), server_name)
+        let tls_conn = ClientConnection::new(tls_config.unwrap(), server_name)
             .map_err(|e| format!("Failed to create TLS connection: {}", e))?;
         
         Ok(ConnectionStream::Tls(tls_conn, stream))
@@ -408,13 +432,13 @@ pub fn health_check(params: &BattleParams) -> Result<(), String> {
 }
 
 fn attempt_health_check(addr: &SocketAddr, request_config: &RequestConfig) -> Result<(), String> {
-    let mut stream = create_connection_stream(*addr, &request_config.host, request_config.is_ht)
+    let mut stream = create_connection_stream(*addr, &request_config.host, request_config)
         .map_err(|e| format!("Failed to create connection: {}", e))?;
     
     // Small delay to let connection stabilize
     std::thread::sleep(std::time::Duration::from_millis(50));
     
-    if request_config.is_ht {
+    if request_config.is_https {
         complete_tls_handshake(&mut stream)
             .map_err(|e| format!("TLS handshake failed: {}", e))?;
     }
@@ -543,7 +567,7 @@ fn run_thread(
 
         let request_bytes = request_config.build_request().into_bytes();
 
-        let connection_stream = if request_config.is_ht {
+        let connection_stream = if request_config.is_https {
             // Create TLS connection
             let server_name = ServerName::try_from(request_config.host.as_str())
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, format!("Invalid DNS name: {}", e)))?;
@@ -582,7 +606,7 @@ fn run_thread(
             let conn = connections_map.get_mut(&token).unwrap();
 
             // Handle TLS handshake for HTTPS connections
-            if request_config.is_ht && conn.stream.is_handshaking() && event.is_writable() {
+            if request_config.is_https && conn.stream.is_handshaking() && event.is_writable() {
                 match conn.stream.write(&[]) {
                     Ok(_) => {
                         if !conn.stream.is_handshaking() {
@@ -609,7 +633,7 @@ fn run_thread(
                 }
             }
 
-            if event.is_writable() && !conn.request_sent && (!conn.stream.is_handshaking() || !request_config.is_ht) {
+            if event.is_writable() && !conn.request_sent && (!conn.stream.is_handshaking() || !request_config.is_https) {
                 // Send prebuilt request
                 match conn.stream.write(&conn.request_bytes) {
                     Ok(_) => {
