@@ -155,8 +155,15 @@ This project is licensed under the GNU General Public License v2.0 - see the [LI
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [v2.0.4](https://github.com/Phara0h/WaspsWithBazookas/compare/v2.0.3...v2.0.4)
+
+- FIxed some more weird https issues [`2c36552`](https://github.com/Phara0h/WaspsWithBazookas/commit/2c36552257091fa94eada31184a8b9342bef72d8)
+
 #### [v2.0.3](https://github.com/Phara0h/WaspsWithBazookas/compare/v2.0.2...v2.0.3)
 
+> 10 July 2025
+
+- chore: bump version to 2.0.3 (patch) [`3b2a04f`](https://github.com/Phara0h/WaspsWithBazookas/commit/3b2a04f0ecdeba58d2da5fb99c1bf61e84e1a6ef)
 - Fixed typo preventing https sites not to work xD [`c46f936`](https://github.com/Phara0h/WaspsWithBazookas/commit/c46f9368492dd4b6a8141942bd1d3d11b2486947)
 - Removed docker and disabled homebrew since WWB is not notable enough [`c8d1af4`](https://github.com/Phara0h/WaspsWithBazookas/commit/c8d1af4d031bd60a5adf8616cb82811c32957db7)
 

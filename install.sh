@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 
 # Configuration
 REPO="Phara0h/WaspsWithBazookas"
-VERSION=${1:-2.0.3}
+VERSION=${1:-2.0.4}
 INSTALL_DIR="${HOME}/.local/bin"
 BINARIES=("hive" "wasp" "test-dummy")
 
