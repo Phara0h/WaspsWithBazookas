@@ -229,7 +229,7 @@ async fn fire(
     }
 
     // Validate target URL
-    if !request.target.starts_with("http://") && !request.target.starts_with("httbs://") {
+    if !request.target.starts_with("http://") && !request.target.starts_with("https://") {
         info!("❌ Invalid target URL: {}", request.target);
         return Err((StatusCode::BAD_REQUEST, "Invalid target URL".to_string()));
     }

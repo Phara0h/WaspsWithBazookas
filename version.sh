@@ -90,26 +90,12 @@ update_version_in_files() {
         print_success "Updated Cargo.toml"
     fi
     
-    # Update Homebrew formula
-    if [ -f "Formula/waspswithbazookas.rb" ]; then
-        sed -i.bak "s/^  version \".*\"/  version \"$new_version\"/" Formula/waspswithbazookas.rb
-        rm -f Formula/waspswithbazookas.rb.bak
-        print_success "Updated Formula/waspswithbazookas.rb"
-    fi
-    
-    # Update Chocolatey package
-    if [ -f "chocolatey/waspswithbazookas.nuspec" ]; then
-        sed -i.bak "s/<version>.*<\/version>/<version>$new_version<\/version>/" chocolatey/waspswithbazookas.nuspec
-        rm -f chocolatey/waspswithbazookas.nuspec.bak
-        print_success "Updated chocolatey/waspswithbazookas.nuspec"
-    fi
-    
-    # Update Chocolatey install script
-    if [ -f "chocolatey/tools/chocolateyinstall.ps1" ]; then
-        sed -i.bak "s/url = 'https:\/\/github.com\/Phara0h\/WaspsWithBazookas\/releases\/download\/v.*\/waspswithbazookas-windows-x86_64.tar.gz'/url = 'https:\/\/github.com\/Phara0h\/WaspsWithBazookas\/releases\/download\/v$new_version\/waspswithbazookas-windows-x86_64.tar.gz'/" chocolatey/tools/chocolateyinstall.ps1
-        rm -f chocolatey/tools/chocolateyinstall.ps1.bak
-        print_success "Updated chocolatey/tools/chocolateyinstall.ps1"
-    fi
+    # # Update Homebrew formula
+    # if [ -f "Formula/waspswithbazookas.rb" ]; then
+    #     sed -i.bak "s/^  version \".*\"/  version \"$new_version\"/" Formula/waspswithbazookas.rb
+    #     rm -f Formula/waspswithbazookas.rb.bak
+    #     print_success "Updated Formula/waspswithbazookas.rb"
+    # fi
     
     # Update install scripts
     if [ -f "install.sh" ]; then
