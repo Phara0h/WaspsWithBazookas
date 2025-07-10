@@ -1,0 +1,32 @@
+name = "wwb-cf-wasp"
+main = "build/worker/shim.mjs"
+compatibility_date = "2024-01-15"
+compatibility_flags = ["global_fetch_strictly_public"]
+
+[build]
+command = "cargo install -q worker-build && worker-build --release"
+
+[env.production]
+name = "wwb-cf-wasp"
+
+[env.staging]
+name = "wwb-cf-wasp-staging"
+
+[env.development]
+name = "wwb-cf-wasp-dev"
+
+[vars]
+HIVE_URL = "http://127.0.0.1:4269"
+BAZOOKA_WORKER_URL = "https://wwb-cf-bazooka.dragohm.workers.dev"
+WASP_WORKER_URL = "https://wwb-cf-wasp.dragohm.workers.dev"
+
+[[durable_objects.bindings]]
+name = "WASP_DURABLE_OBJECT"
+class_name = "WaspDurableObject"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["WaspDurableObject"]
+
+[observability.logs]
+enabled = true

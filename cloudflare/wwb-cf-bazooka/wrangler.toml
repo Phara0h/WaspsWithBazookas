@@ -1,0 +1,17 @@
+name = "wwb-cf-bazooka"
+main = "build/worker/shim.mjs"
+compatibility_date = "2025-07-09"
+compatibility_flags = ["global_fetch_strictly_public"]
+
+[build]
+command = "cargo install -q worker-build && worker-build --release"
+
+[env.production]
+vars = { ENVIRONMENT = "production" }
+
+[env.staging]
+vars = { ENVIRONMENT = "staging" } 
+
+[observability.logs]
+enabled = true
+
