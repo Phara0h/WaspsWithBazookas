@@ -155,8 +155,16 @@ This project is licensed under the GNU General Public License v2.0 - see the [LI
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [v2.0.3](https://github.com/Phara0h/WaspsWithBazookas/compare/v2.0.2...v2.0.3)
+
+- Fixed typo preventing https sites not to work xD [`c46f936`](https://github.com/Phara0h/WaspsWithBazookas/commit/c46f9368492dd4b6a8141942bd1d3d11b2486947)
+- Removed docker and disabled homebrew since WWB is not notable enough [`c8d1af4`](https://github.com/Phara0h/WaspsWithBazookas/commit/c8d1af4d031bd60a5adf8616cb82811c32957db7)
+
 #### [v2.0.2](https://github.com/Phara0h/WaspsWithBazookas/compare/v2.0.1...v2.0.2)
 
+> 8 July 2025
+
+- chore: bump version to 2.0.2 (patch) [`5d2054c`](https://github.com/Phara0h/WaspsWithBazookas/commit/5d2054c2abbc640beeed2777bd4d3a0b860c76b0)
 - Update Cargo.toml [`3288762`](https://github.com/Phara0h/WaspsWithBazookas/commit/328876217bf890f8f9c05c6254b7586ef464c20a)
 - Update README.md [`80c0213`](https://github.com/Phara0h/WaspsWithBazookas/commit/80c02136b050ed2405a4ac9998fe6b236b6c7b38)
 - Removed chocolatey don't want the hassle [`ce5eae5`](https://github.com/Phara0h/WaspsWithBazookas/commit/ce5eae52542e736a61e7a4bb35468e09d97f4f7b)
